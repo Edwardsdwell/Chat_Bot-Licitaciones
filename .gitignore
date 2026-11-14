@@ -1,0 +1,13 @@
+.Renviron
+.env
+.env.*
+!.env.example
+logs/*.log
+logs/fallas.txt
+logs/*.lock
+logs/estado_recoleccion.json
+.RData
+.Rhistory
+backend/.RData
+backend/.Rhistory
+INFORMES/*.zip

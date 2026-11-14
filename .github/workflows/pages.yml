@@ -1,4 +1,4 @@
-name: Publicar La Pala en GitHub Pages
+name: Publicar cliente estático en GitHub Pages
 on:
   push:
     branches: [main]
@@ -21,6 +21,6 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: Chat_Bot-Public-Services
       - id: deployment
         uses: actions/deploy-pages@v4

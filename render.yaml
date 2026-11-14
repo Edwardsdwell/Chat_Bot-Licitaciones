@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: la-pala-mark-iv
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: LA_PALA_HOST
+        value: 0.0.0.0
+      - key: LA_PALA_OPEN_BROWSER
+        value: "0"
+      - key: LA_PALA_DATA_DIR
+        value: /tmp/data
+      - key: LA_PALA_LOG_DIR
+        value: /tmp/logs
+      - key: LA_PALA_CATALOG_FILE
+        value: /tmp/data/catalogo.json
+      - key: LA_PALA_SOURCES_FILE
+        value: /app/scraping/sources.json
+      - key: LA_PALA_DELAY_SECONDS
+        value: "8"
+      - key: MAPACHE_ACCESS_PASSWORD
+        sync: false

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e0b0b">
+  <meta name="description" content="La Pala reúne convocatorias, becas, compras públicas, fondos, precios y normativa de Bolivia en un solo lugar.">
+  <title>La Pala · oportunidades de Bolivia</title>
+  <link rel="preload" as="image" href="/assets/bienvenidos-himalaya.jpeg" fetchpriority="high">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/analitica.css">
+</head>
+<body>
+  <a class="enlace-salto" href="#contenido">Ir al contenido</a>
+  <div class="marco-app">
+    <aside class="barra-lateral" aria-label="Navegación principal">
+      <a class="marca" href="#inicio" aria-label="La Pala, inicio">
+        <span class="marca-simbolo" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="marca-texto"><strong>la pala</strong><small>Radar de Bolivia</small></span>
+      </a>
+
+      <nav class="navegacion" id="navegacion" aria-label="Áreas de oportunidades">
+        <p class="titulo-navegacion">Explorar</p>
+        <a class="enlace-nav activo" href="#lista-oportunidades" data-categoria="todas" aria-current="page">Vista general</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="convocatorias">Convocatorias públicas</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="empleo_publico">Empleo del Estado</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="contrataciones">Compras y SICOES</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="merito">Concursos de mérito</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="becas">Becas y pasantías</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="fondos">Fondos y financiamiento</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="precios">Precios locales</a>
+        <a class="enlace-nav" href="#lista-oportunidades" data-categoria="normativa">Normativa y Gaceta</a>
+        <p class="titulo-navegacion">Analizar</p>
+        <button class="enlace-nav" id="ir-analitica" type="button">Analítica web</button>
+        <button class="enlace-nav" id="ir-mapache" type="button">MAPACHE · Bloqueos</button>
+      </nav>
+
+      <div class="nota-lateral">
+        <p>La información conserva su fuente original y su fecha de revisión.</p>
+        <button id="boton-fuentes" class="boton-texto" type="button">Ver fuentes registradas</button>
+      </div>
+      <div class="pie-lateral">Información pública · Bolivia</div>
+    </aside>
+
+    <div class="columna-app">
+      <header class="barra-superior">
+        <a class="marca-movil" href="#contenido" aria-label="La Pala, chat principal">
+          <span class="marca-simbolo" aria-hidden="true"><span></span><span></span><span></span></span>
+          <strong>la pala</strong>
+        </a>
+        <form id="form-busqueda-superior" class="busqueda-superior" role="search">
+          <label class="sr-only" for="consulta-superior">Buscar en todas las oportunidades</label>
+          <span class="lupa" aria-hidden="true"></span>
+          <input id="consulta-superior" name="q" type="search" maxlength="300" placeholder="Buscar becas, convocatorias, normas…" autocomplete="off">
+          <kbd>Intro</kbd>
+        </form>
+        <button id="abrir-recoleccion" class="boton-mineria" type="button">Iniciar minería web</button>
+        <div class="estado-servicio"><span class="punto-estado" aria-hidden="true"></span><span id="estado-texto" role="status">Consultando fuentes</span></div>
+        <details id="menu-movil" class="menu-movil">
+          <summary aria-label="Abrir menú con categorías, resultados y estadísticas">Menú</summary>
+          <div id="contenido-menu-movil" class="contenido-menu-movil"></div>
+        </details>
+      </header>
+
+      <nav class="pestanas-app" role="tablist" aria-label="Vistas principales">
+        <button type="button" role="tab" aria-selected="true" aria-current="page" aria-controls="contenido" data-vista-app="chat">Conversar</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="analitica" data-vista-app="analitica">Laboratorio</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="mapache-integrado" data-vista-app="mapache">MAPACHE · ¿Hay bloqueos?</button>
+      </nav>
+
+      <main class="hoja" id="contenido">
+        <section class="encabezado-pagina" id="inicio" aria-labelledby="titulo-principal">
+          <div>
+            <p class="saludo">Radar público · Bolivia</p>
+            <h1 id="titulo-principal">Tu asistente de oportunidades públicas</h1>
+            <p class="bajada">Pregunta por empleos, becas, convocatorias, compras y normativa. La Pala presenta hallazgos con enlaces a sus fuentes.</p>
+          </div>
+          <img class="imagen-identidad" src="/assets/bienvenidos-himalaya.jpeg" alt="Paisaje del Himalaya que acompaña a La Pala" width="388" height="218" fetchpriority="high">
+        </section>
+
+        <section class="franja-resumen" aria-label="Estado del catálogo">
+          <p id="resumen-catalogo">Aún no hay oportunidades recopiladas. Las fuentes públicas configuradas aparecerán aquí cuando el recolector pueda interpretarlas.</p>
+          <span id="fecha-actualizacion" class="fecha-actualizacion">Sin actualización registrada</span>
+        </section>
+
+        <section class="bloque-asistente" aria-labelledby="titulo-asistente">
+          <div class="cabecera-bloque">
+            <div>
+              <h2 id="titulo-asistente">Pregunta a La Pala</h2>
+              <p>Por ejemplo: «¿Qué becas puedo pedir antes de fin de mes?»</p>
+            </div>
+            <button id="limpiar-chat" class="boton-texto" type="button">Nueva consulta</button>
+          </div>
+          <p id="estado-chat-worker" class="estado-chat-worker" role="status">El catálogo se actualiza a diario; mientras exploro, verás los hallazgos conforme aparezcan.</p>
+          <div class="area-chat" id="mensajes" aria-live="polite" aria-relevant="additions text">
+            <div class="fila-mensaje mensaje-asistente">
+              <div class="globo">
+                <p>Bienvenida a La Pala. Puedo ayudarte a encontrar oportunidades y revisar sus fechas límite.</p>
+                <p class="texto-secundario">No invento requisitos ni plazos: consulta siempre el documento de la fuente.</p>
+              </div>
+            </div>
+          </div>
+          <div class="consultas-sugeridas" aria-label="Consultas sugeridas">
+            <button type="button" data-consulta="Becas que cierren antes de fin de mes">Becas antes de fin de mes</button>
+            <button type="button" data-consulta="Convocatorias públicas abiertas">Convocatorias abiertas</button>
+            <button type="button" data-consulta="Licitaciones de SICOES en La Paz">Compras en La Paz</button>
+            <button type="button" data-consulta="Fondos para una ONG">Fondos para una ONG</button>
+            <button type="button" data-consulta="¿Hay bloqueos?">¿Hay bloqueos?</button>
+          </div>
+          <form id="form-chat" class="formulario-chat">
+            <label class="sr-only" for="consulta-chat">Escribe tu consulta</label>
+            <input id="consulta-chat" name="q" type="search" maxlength="300" placeholder="¿Qué oportunidad estás buscando?" autocomplete="off" required>
+            <button id="enviar-consulta" type="submit">Consultar</button>
+          </form>
+          <p class="aviso-chat">El chat no guarda tus consultas ni realiza postulaciones.</p>
+        </section>
+
+        <div class="rejilla-principal">
+          <section class="bloque-oportunidades" aria-labelledby="titulo-oportunidades">
+            <div class="cabecera-bloque cabecera-resultados">
+              <div>
+                <h2 id="titulo-oportunidades">Cierres próximos</h2>
+                <p id="subtitulo-oportunidades">Oportunidades vigentes ordenadas por fecha límite.</p>
+              </div>
+              <span id="cantidad-oportunidades" class="cantidad-resultados" aria-live="polite">0</span>
+            </div>
+            <div id="lista-oportunidades" class="lista-oportunidades"></div>
+            <div id="vacio-oportunidades" class="estado-vacio">
+              <h3>El catálogo está listo para llenarse</h3>
+              <p>Cuando una fuente publique datos que podamos interpretar sin iniciar sesión ni ejecutar mecanismos especiales, aparecerán aquí. No se muestran ejemplos ficticios.</p>
+            </div>
+          </section>
+
+          <aside class="columna-secundaria">
+            <section class="bloque-precios" aria-labelledby="titulo-precios">
+              <div class="cabecera-bloque">
+                <div>
+                  <h2 id="titulo-precios">Precios observados</h2>
+                  <p>Historial local, con unidad y fecha.</p>
+                </div>
+              </div>
+              <div id="resumen-precios" class="resumen-precios"></div>
+              <div id="vacio-precios" class="estado-vacio estado-vacio-compacto">
+                <p>Aún no hay observaciones locales. Un precio solo se mostrará cuando venga acompañado de fuente, lugar, unidad y fecha de registro.</p>
+              </div>
+            </section>
+
+            <section class="bloque-fuentes" aria-labelledby="titulo-fuentes">
+              <div class="cabecera-bloque">
+                <div>
+                  <h2 id="titulo-fuentes">Fuentes de referencia</h2>
+                  <p>Portales públicos e institucionales.</p>
+                </div>
+                <button id="abrir-fuentes" class="boton-texto" type="button">Ver todas</button>
+              </div>
+              <div id="resumen-fuentes" class="lista-fuentes"></div>
+            </section>
+          </aside>
+        </div>
+
+        <section id="analitica" class="analitica" aria-label="Analítica web" hidden></section>
+        <section id="mapache-integrado" class="panel-mapache" aria-label="MAPACHE: estado de fuentes" hidden>
+          <header class="cab-mapache"><div><p class="saludo">MAPACHE · noticias y normativa</p><h2>¿Hay bloqueos?</h2><p>Reportes de prensa, novedades de la Gaceta Oficial y estado del rastreo.</p></div><button id="actualizar-mapache" class="boton-texto" type="button">Actualizar</button></header>
+          <div id="mapache-resumen" class="resumen-mapache" role="status">Consultando fuentes…</div>
+          <section class="noticias-bloqueos" aria-labelledby="titulo-gaceta"><h3 id="titulo-gaceta">Normas y decretos recientes</h3><p id="estado-gaceta">Consultando publicaciones del catálogo.</p><div id="lista-gaceta" class="lista-mapache"></div><a id="enlace-gaceta" href="https://www.gacetaoficialdebolivia.gob.bo/" target="_blank" rel="noopener noreferrer">Abrir Gaceta Oficial ↗</a></section>
+          <details class="mapache-detalle"><summary>Estado técnico de fuentes</summary><div id="mapache-fuentes" class="lista-mapache"></div></details>
+          <section class="noticias-bloqueos" aria-labelledby="titulo-noticias-bloqueos"><h3 id="titulo-noticias-bloqueos">Reportes recientes</h3><p id="estado-noticias-bloqueos" role="status">El próximo ciclo revisará los feeds de noticias configurados.</p><div id="lista-noticias-bloqueos" class="lista-mapache"></div><details><summary>Medios y feeds consultados</summary><div id="fuentes-noticias-bloqueos" class="lista-mapache"></div></details><p class="nota-noticias">Se detectan menciones, no se confirma el estado de una carretera. Verifica cada reporte con ABC y autoridades locales.</p></section>
+          <details class="mapache-detalle"><summary>Abrir MAPACHE completo</summary><iframe title="MAPACHE · análisis público de Bolivia" src="mapache/index.html" loading="lazy"></iframe></details>
+        </section>
+
+        <aside class="aviso-seguridad">
+          <strong>Verifica antes de postular.</strong>
+          <span>La Pala reúne información pública. Las fechas, requisitos y condiciones oficiales son los del documento enlazado; nunca entregues dinero ni claves para acceder a una convocatoria.</span>
+        </aside>
+
+        <footer class="pie-pagina">
+          <span>La Pala · oportunidades de Bolivia</span>
+          <span>Datos con fuente, fecha y estado de verificación</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="dialogo-fuentes" aria-labelledby="titulo-dialogo-fuentes">
+    <div class="cabecera-dialogo">
+      <div><h2 id="titulo-dialogo-fuentes">Fuentes registradas</h2><p>El registro de una fuente no garantiza que su contenido se pueda recopilar.</p></div>
+      <button id="cerrar-fuentes" class="boton-texto" type="button">Cerrar</button>
+    </div>
+    <div id="lista-dialogo-fuentes" class="lista-fuentes lista-dialogo"></div>
+  </dialog>
+
+  <dialog id="dialogo-recoleccion" aria-labelledby="titulo-dialogo-recoleccion">
+    <div class="cabecera-dialogo">
+      <div><h2 id="titulo-dialogo-recoleccion">Iniciar minería web</h2><p>Se consulta cada fuente y el catálogo solo muestra publicaciones verificadas hoy. La actualización automática se repite diariamente mientras La Pala esté abierta.</p></div>
+      <button id="cerrar-recoleccion" class="boton-texto" type="button">Cerrar</button>
+    </div>
+    <form id="form-recoleccion-manual" class="formulario-recoleccion">
+      <label for="clave-recoleccion">Clave administrativa MAPACHE</label>
+      <input id="clave-recoleccion" name="clave" type="password" autocomplete="off" maxlength="128" required>
+      <p class="ayuda-clave">La clave se valida en el servidor y no se muestra ni guarda en la página.</p>
+      <button id="iniciar-recoleccion" type="submit">Iniciar revisión completa</button>
+      <div id="progreso-recoleccion" class="progreso-recoleccion" role="status" aria-live="polite" hidden>
+        <div class="progreso-etiquetas"><span id="progreso-mensaje">Preparando revisión…</span><span id="progreso-porcentaje">0%</span></div>
+        <div class="barra-progreso-recoleccion" aria-hidden="true"><span id="relleno-progreso-recoleccion"></span></div>
+        <span id="progreso-fuentes">0 de 0 fuentes completadas</span>
+      </div>
+      <p id="estado-recoleccion-manual" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+
+  <script src="/js/app.js" defer></script>
+  <script src="/js/analitica.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.git
+.env
+logs
+INFORMES/*.zip
+.Rproj.user
+*.Rhistory
+*.RData
