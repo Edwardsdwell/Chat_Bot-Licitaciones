@@ -2,7 +2,9 @@
 # Solo usa HTTPS, respeta robots.txt y omite autenticacion, bloqueos y paginas dinamicas.
 
 `%||%` <- function(x, y) {
-  if (is.null(x) || !length(x) || all(is.na(x))) y else x
+  if (is.null(x) || !length(x)) return(y)
+  ausente <- tryCatch(all(is.na(x)), error = function(e) FALSE)
+  if (isTRUE(ausente)) y else x
 }
 
 paquetes_requeridos <- c("httr", "xml2", "jsonlite", "digest")
@@ -82,7 +84,8 @@ registrar <- function(..., nivel = "INFO") {
 normalizar_texto <- function(valor) {
   valores <- as.character(unlist(valor, use.names = FALSE))
   texto <- paste(valores[!is.na(valores)], collapse = " ")
-  texto <- iconv(texto, from = "", to = "ASCII//TRANSLIT", sub = "")
+  texto <- suppressWarnings(iconv(texto, from = "", to = "ASCII//TRANSLIT", sub = ""))
+  if (length(texto) != 1L || is.na(texto)) texto <- ""
   tolower(trimws(gsub("[[:space:]]+", " ", texto)))
 }
 
@@ -107,7 +110,7 @@ partes_url <- function(url) {
   if (length(url) != 1L || is.na(url) || !nzchar(trimws(url))) return(NULL)
   parsed <- tryCatch(xml2::url_parse(url), error = function(e) NULL)
   if (is.null(parsed)) return(NULL)
-  esquema <- tolower(as.character(parsed$scheme %||% ""))
+  esquema <- tolower(as.character((parsed$scheme %||% "")[[1L]]))
   host <- parsed$hostname %||% parsed$server %||% parsed$host %||% ""
   host <- if (length(host) && !is.na(host[[1L]])) tolower(trimws(as.character(host[[1L]]))) else ""
   ruta <- parsed$path %||% "/"
@@ -459,6 +462,47 @@ texto_pagina <- function(documento) {
   ruido <- xml2::xml_find_all(copia, "//script | //style | //noscript | //nav | //footer | //header")
   if (length(ruido)) xml2::xml_remove(ruido)
   limpiar_texto(xml2::xml_text(xml2::xml_find_first(copia, "//body")), 12000L)
+}
+
+extraer_bloques_publicacion <- function(documento) {
+  copia <- xml2::xml_unserialize(xml2::xml_serialize(documento, NULL))
+  ruido <- xml2::xml_find_all(copia, "//script | //style | //noscript | //nav | //footer | //header | //form | //aside")
+  if (length(ruido)) xml2::xml_remove(ruido)
+  contenedor <- xml2::xml_find_first(copia, "//main | //article | //*[@role='main']")
+  if (inherits(contenedor, "xml_missing")) contenedor <- xml2::xml_find_first(copia, "//body")
+  nodos <- xml2::xml_find_all(contenedor, ".//h1 | .//h2 | .//h3 | .//h4 | .//p | .//li | .//tr | .//dt | .//dd")
+  if (!length(nodos)) return(list())
+  salida <- list(); seccion <- ""
+  for (nodo in nodos) {
+    texto <- limpiar_texto(xml2::xml_text(nodo), 900L)
+    if (!nzchar(texto)) next
+    etiqueta <- tolower(xml2::xml_name(nodo))
+    if (etiqueta %in% c("h1", "h2", "h3", "h4", "dt")) seccion <- texto
+    if (nchar(texto) < 22L && !etiqueta %in% c("h1", "h2", "h3", "h4", "dt")) next
+    salida[[length(salida) + 1L]] <- list(texto = texto, seccion = seccion, etiqueta = etiqueta)
+  }
+  if (!length(salida)) return(list())
+  claves <- vapply(salida, function(x) normalizar_texto(x$texto), character(1))
+  salida[!duplicated(claves)]
+}
+
+extraer_enlaces_publicacion <- function(documento, base) {
+  copia <- xml2::xml_unserialize(xml2::xml_serialize(documento, NULL))
+  ruido <- xml2::xml_find_all(copia, "//script | //style | //noscript | //nav | //footer | //header | //form | //aside")
+  if (length(ruido)) xml2::xml_remove(ruido)
+  contenedor <- xml2::xml_find_first(copia, "//main | //article | //*[@role='main']")
+  if (inherits(contenedor, "xml_missing")) contenedor <- xml2::xml_find_first(copia, "//body")
+  nodos <- xml2::xml_find_all(contenedor, ".//a[@href]")
+  salida <- lapply(nodos, function(nodo) {
+    texto <- limpiar_texto(xml2::xml_text(nodo), 260L)
+    enlace <- url_absoluta(xml2::xml_attr(nodo, "href"), base)
+    if (nchar(texto) < 5L || !url_https_valida(enlace) || !mismo_dominio(enlace, base)) return(NULL)
+    list(texto = texto, url = sub("#.*$", "", enlace))
+  })
+  salida <- Filter(Negate(is.null), salida)
+  if (!length(salida)) return(list())
+  claves <- vapply(salida, function(x) x$url, character(1))
+  head(salida[!duplicated(claves)], 60L)
 }
 
 detectar_barrera <- function(texto, documento) {
@@ -840,7 +884,74 @@ leer_detalle <- function(url, reglas, fuente, texto_enlace = "") {
     oportunidad = extraer_oportunidad(documento, fuente, url, texto_enlace),
     oportunidades_tabla = oportunidades_de_tabla(documento, url, fuente),
     precios = lista_precios,
-    cuerpo = cuerpo
+    cuerpo = cuerpo,
+    bloques = extraer_bloques_publicacion(documento),
+    enlaces = extraer_enlaces_publicacion(documento, final),
+    url_final = as.character(final)
+  )
+}
+
+extraer_detalle_publicacion <- function(url, fuente, consulta = "", titulo_objetivo = "") {
+  if (!url_https_valida(url) || !mismo_dominio(url, fuente$url)) {
+    return(list(estado = "fuera_de_alcance"))
+  }
+  reglas <- revisar_robots(url)
+  if (!isTRUE(reglas$permitido)) return(list(estado = "no_consultable", motivo = reglas$estado %||% "reglas_no_disponibles"))
+  lectura <- leer_detalle(url, reglas, fuente)
+  if (isTRUE(lectura$omitida)) return(list(estado = "no_consultable", motivo = lectura$motivo %||% "sin_respuesta"))
+  # Algunas fuentes enlazan a una página de búsqueda en vez de a la ficha.
+  # Sigue como máximo un enlace del mismo dominio que coincida con el título.
+  titulo_norm <- normalizar_texto(titulo_objetivo)
+  if (nzchar(titulo_norm) && length(lectura$enlaces)) {
+    palabras_objetivo <- unique(strsplit(titulo_norm, " ")[[1L]])
+    candidatas <- Filter(function(x) !identical(x$url, lectura$url_final), lectura$enlaces)
+    solapamiento <- vapply(candidatas, function(x) {
+      palabras <- unique(strsplit(normalizar_texto(x$texto), " ")[[1L]])
+      length(intersect(palabras_objetivo, palabras)) / max(1L, length(palabras_objetivo))
+    }, numeric(1))
+    if (length(solapamiento) && max(solapamiento) >= 0.6) {
+      candidata <- candidatas[[which.max(solapamiento)]]
+      reglas_candidata <- revisar_robots(candidata$url)
+      if (isTRUE(reglas_candidata$permitido)) {
+        vinculada <- leer_detalle(candidata$url, reglas_candidata, fuente, candidata$texto)
+        if (!isTRUE(vinculada$omitida) && length(vinculada$bloques) >= 2L) lectura <- vinculada
+      }
+    }
+  }
+  bloques <- lectura$bloques %||% list()
+  if (!length(bloques)) return(list(estado = "sin_texto", url = lectura$url_final %||% url))
+
+  q <- terminos_consulta(consulta)
+  texto_bloques <- vapply(bloques, function(x) normalizar_texto(paste(x$seccion, x$texto)), character(1))
+  etiquetas <- vapply(bloques, function(x) texto_seguro(x$seccion), character(1))
+  score <- vapply(seq_along(bloques), function(i) {
+    t <- texto_bloques[i]
+    consulta_score <- if (length(q)) sum(vapply(q, function(p) coincide_termino(p, t), logical(1))) else 0
+    tema_score <- sum(grepl(c("requisit|document|perfil|formacion|experienc", "fecha limite|plazo|cierre|postulacion|vence", "ubicacion|lugar de trabajo|ciudad|departamento|modalidad", "salario|sueldo|haber|remuneracion|bolivianos", "postular|inscripcion|presentar|enviar|correo|contacto"), t))
+    seccion_score <- if (nzchar(etiquetas[i]) && grepl("requisit|plazo|cronograma|postul|ubicacion|contacto|remuneracion|perfil", normalizar_texto(etiquetas[i]))) 4 else 0
+    consulta_score + tema_score * 2 + seccion_score + if (bloques[[i]]$etiqueta %in% c("h2", "h3", "h4")) 1 else 0
+  }, numeric(1))
+  utiles <- which(vapply(bloques, function(x) nchar(x$texto) >= 35L, logical(1)) & score > 0)
+  orden <- utiles[order(-score[utiles], seq_along(utiles))]
+  extractos <- head(lapply(orden, function(i) list(seccion = etiquetas[i], texto = bloques[[i]]$texto)), 8L)
+  campo <- function(patron) {
+    indices <- which(grepl(patron, paste(etiquetas, texto_bloques), ignore.case = TRUE))
+    valores <- vapply(indices, function(i) bloques[[i]]$texto, character(1))
+    valores <- valores[nchar(valores) >= 25L]
+    unique(head(valores, 4L))
+  }
+  plazo <- extraer_fecha_limite(lectura$cuerpo)
+  list(
+    estado = "ok", titulo = if (!is.null(lectura$oportunidad)) texto_seguro(lectura$oportunidad$titulo) else "",
+    url = lectura$url_final %||% url, fuente = texto_seguro(fuente$nombre, "Fuente pública"),
+    fecha_limite = plazo,
+    campos = list(
+      requisitos = campo("requisit|document|perfil|formacion|experienc|condiciones"),
+      ubicacion = campo("ubicacion|lugar de trabajo|ciudad|departamento|modalidad"),
+      postulacion = campo("postular|inscripcion|presentar|enviar|correo|contacto|cronograma"),
+      remuneracion = campo("salario|sueldo|haber|remuneracion|bolivianos")
+    ),
+    extractos = extractos, consultado_en = as.character(Sys.time())
   )
 }
 
@@ -1141,7 +1252,11 @@ ejecutar_recoleccion_diaria <- function(fuentes_archivo = ARCHIVO_FUENTES, catal
     rendimiento_previo <- vapply(registro_anterior, function(item) {
       as.numeric(item$oportunidades_encontradas %||% 0) + 0.5 * as.numeric(item$precios_observados %||% 0)
     }, numeric(1))
-    fuentes <- fuentes[order(!categoria_coincide, fuente_no_oficial, fuente_con_fallo, -rendimiento_previo, seq_along(fuentes))]
+    orden_prioridad <- order(!categoria_coincide, fuente_no_oficial, fuente_con_fallo,
+                             -rendimiento_previo, seq_along(fuentes))
+    fuentes <- fuentes[orden_prioridad]
+    categoria_coincide <- categoria_coincide[orden_prioridad]
+    fuente_no_oficial <- fuente_no_oficial[orden_prioridad]
 
     # Dentro de cada nivel de prioridad, rota por host para que un dominio con
     # varias rutas no monopolice el comienzo del ciclo.
@@ -1201,7 +1316,18 @@ ejecutar_recoleccion_diaria <- function(fuentes_archivo = ARCHIVO_FUENTES, catal
     solicitudes_http <<- solicitudes_http + 1L
     informar_progreso(fuentes_completadas, fuente_actual)
   }
+  callback_preexistente <- exists("informar_solicitud_recoleccion", envir = .GlobalEnv, inherits = FALSE)
+  if (callback_preexistente) {
+    callback_anterior <- get("informar_solicitud_recoleccion", envir = .GlobalEnv, inherits = FALSE)
+  }
   assign("informar_solicitud_recoleccion", informar_solicitud, envir = .GlobalEnv)
+  on.exit({
+    if (callback_preexistente) {
+      assign("informar_solicitud_recoleccion", callback_anterior, envir = .GlobalEnv)
+    } else if (exists("informar_solicitud_recoleccion", envir = .GlobalEnv, inherits = FALSE)) {
+      rm("informar_solicitud_recoleccion", envir = .GlobalEnv)
+    }
+  }, add = TRUE)
   resumir_fuente <- function(item) list(
     id = item$id,
     url = item$url,
