@@ -75,7 +75,44 @@ ruta_rscript <- function() {
 
 # Lanza un script en segundo plano. Las variables de entorno se fijan con Sys.setenv
 # (no con env= de system2, que no las entrecomilla y permite inyección de comandos).
+# --- Límite de memoria (Render gratis: 512 MB) ---------------------------------
+# Lee el consumo real (sin caché de disco) del cgroup; devuelve Inf si no se puede medir.
+MIN_MEMORIA_MB <- suppressWarnings(as.numeric(Sys.getenv("LA_PALA_MIN_MEMORIA_MB", "220")))
+if (is.na(MIN_MEMORIA_MB)) MIN_MEMORIA_MB <- 220
+
+memoria_libre_mb <- function() {
+  numero <- function(ruta) {
+    if (!file.exists(ruta)) return(NA_real_)
+    v <- suppressWarnings(as.numeric(tryCatch(readLines(ruta, n = 1L, warn = FALSE), error = function(e) NA)))
+    if (length(v) == 1L) v else NA_real_
+  }
+  limite <- numero("/sys/fs/cgroup/memory.max")
+  if (is.na(limite)) limite <- numero("/sys/fs/cgroup/memory/memory.limit_in_bytes")
+  if (is.na(limite) || limite > 1e13) return(Inf)
+  uso <- NA_real_
+  for (par in list(c("/sys/fs/cgroup/memory.stat", "anon"), c("/sys/fs/cgroup/memory/memory.stat", "total_rss"))) {
+    if (!file.exists(par[[1]])) next
+    lineas <- tryCatch(readLines(par[[1]], warn = FALSE), error = function(e) character())
+    fila <- grep(paste0("^", par[[2]], " "), lineas, value = TRUE)
+    if (length(fila)) { uso <- suppressWarnings(as.numeric(sub(".* ", "", fila[[1]]))); break }
+  }
+  if (is.na(uso)) uso <- numero("/sys/fs/cgroup/memory.current")
+  if (is.na(uso)) uso <- numero("/sys/fs/cgroup/memory/memory.usage_in_bytes")
+  if (is.na(uso)) return(Inf)
+  (limite - uso) / 1048576
+}
+memoria_suficiente <- function() memoria_libre_mb() >= MIN_MEMORIA_MB
+
+# Solo un proceso pesado de R a la vez: cada Rscript hijo ocupa cientos de MB.
+hay_analisis_en_curso <- function() {
+  bloqueos <- list.files(DIR_TRABAJOS, pattern = "\\.lock$", full.names = TRUE)
+  if (!length(bloqueos)) return(FALSE)
+  edad <- as.numeric(difftime(Sys.time(), file.info(bloqueos)$mtime, units = "mins"))
+  any(!is.na(edad) & edad < 10)
+}
+
 lanzar_rscript <- function(archivo, args = character(), entorno = character()) {
+  if (!memoria_suficiente()) stop("Memoria insuficiente para lanzar un proceso en segundo plano.")
   nombres <- names(entorno)
   if (length(nombres)) {
     previos <- Sys.getenv(nombres, unset = NA_character_, names = FALSE)
@@ -96,11 +133,38 @@ leer_json <- function(ruta, alternativo = list()) {
   tryCatch(jsonlite::fromJSON(ruta, simplifyVector = FALSE), error = function(e) alternativo)
 }
 
+leer_fuentes <- local({
+  marca <- NULL; valor <- list()
+  function() {
+    i <- file.info(ARCHIVO_FUENTES); k <- paste(i$mtime, i$size)
+    if (!identical(marca, k)) { valor <<- leer_json(ARCHIVO_FUENTES, list()); marca <<- k }
+    valor
+  }
+})
+
+# Recorta textos muy largos del catálogo para que ocupe menos RAM.
+aligerar_catalogo <- function(v) {
+  if (!is.list(v) || !is.list(v$oportunidades)) return(v)
+  limites <- c(descripcion = 2000L, requisitos = 4000L)
+  v$oportunidades <- lapply(v$oportunidades, function(o) {
+    if (!is.list(o)) return(o)
+    for (campo in names(limites)) {
+      x <- o[[campo]]
+      if (is.character(x) && length(x) == 1L && !is.na(x) && nchar(x) > limites[[campo]]) o[[campo]] <- substr(x, 1L, limites[[campo]])
+    }
+    o
+  })
+  v
+}
+
 catalogo <- local({
   marca <- NULL; valor <- list()
   function() {
     i <- file.info(ARCHIVO_CATALOGO); k <- paste(i$mtime, i$size)
-    if (!identical(marca, k)) { v <- leer_json(ARCHIVO_CATALOGO, list()); valor <<- if (is.list(v)) v else list(); marca <<- k }
+    if (!identical(marca, k)) {
+      v <- leer_json(ARCHIVO_CATALOGO, list()); valor <<- if (is.list(v)) aligerar_catalogo(v) else list(); marca <<- k
+      rm(v); invisible(gc())
+    }
     valor
   }
 })
@@ -112,7 +176,7 @@ fecha_segura <- function(valor) {
 }
 
 estado_bloqueos <- function() {
-  configuracion <- leer_json(ARCHIVO_FUENTES, list())
+  configuracion <- leer_fuentes()
   todas <- fuentes_configuradas()
   fuentes_noticias <- Filter(function(f) is.list(f) && isTRUE(f$habilitada), configuracion$fuentes_noticias %||% list())
   informes <- catalogo()$fuentes %||% list()
@@ -134,14 +198,14 @@ estado_bloqueos <- function() {
 }
 
 fuentes_configuradas <- function() {
-  valor <- leer_json(ARCHIVO_FUENTES, list(fuentes = list()))
+  valor <- leer_fuentes()
   fuentes <- valor$fuentes %||% valor$sources %||% list()
   if (!is.list(fuentes)) return(list())
   Filter(function(fuente) is.list(fuente) && isTRUE(fuente$habilitada %||% fuente$enabled %||% FALSE), fuentes)
 }
 
 fuentes_recomendadas <- function(categoria = "", limite = 3L) {
-  registro <- leer_json(ARCHIVO_FUENTES, list(fuentes = list()))
+  registro <- leer_fuentes()
   fuentes <- registro$fuentes %||% registro$sources %||% list()
   if (!is.list(fuentes)) return(list())
   if (nzchar(categoria)) {
@@ -164,6 +228,7 @@ iniciar_recoleccion_si_necesaria <- function(categoria = "") {
   en_cola <- marca_reciente(ARCHIVO_RECOLECCION_ENCOLADA, 5, "mins")
   if (en_curso) return(list(estado = "en_curso", iniciado = FALSE))
   if (en_cola) return(list(estado = "en_cola", iniciado = FALSE))
+  if (hay_analisis_en_curso()) return(list(estado = "en_cola", iniciado = FALSE))
   if (file.exists(ARCHIVO_BLOQUEO_RECOLECCION)) unlink(ARCHIVO_BLOQUEO_RECOLECCION, recursive = TRUE)
   if (file.exists(ARCHIVO_RECOLECCION_ENCOLADA)) unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
 
@@ -206,6 +271,7 @@ iniciar_consulta_en_linea <- function(consulta, categoria = "", forzar = FALSE) 
   dir.create(dirname(ARCHIVO_BLOQUEO_RECOLECCION), recursive = TRUE, showWarnings = FALSE)
   if (marca_reciente(ARCHIVO_BLOQUEO_RECOLECCION, 8, "hours")) return(list(estado = "en_curso", iniciado = FALSE))
   if (marca_reciente(ARCHIVO_RECOLECCION_ENCOLADA, 5, "mins")) return(list(estado = "en_cola", iniciado = FALSE))
+  if (hay_analisis_en_curso()) return(list(estado = "en_cola", iniciado = FALSE))
   # Evita repetir la misma consulta en línea muchas veces seguidas.
   clave <- substr(digest::digest(paste(normalizar_texto(consulta), categoria), "sha256"), 1L, 16L)
   marca <- file.path(dirname(ARCHIVO_BLOQUEO_RECOLECCION), paste0("consulta-", clave, ".marca"))
@@ -438,6 +504,7 @@ lector_detalle_publicacion <- local({
     fuente <- Filter(function(x) identical(texto_seguro(x$id), texto_seguro(oportunidad$fuente_id)), fuentes_configuradas())
     if (!length(fuente)) return(list(estado = "no_consultable"))
     valor <- lector$extraer_detalle_publicacion(url, fuente[[1L]], consulta, texto_seguro(oportunidad$titulo))
+    if (length(ls(cache)) >= 20L) rm(list = ls(cache), envir = cache)
     cache[[clave]] <- list(hora = Sys.time(), valor = valor)
     valor
   }
@@ -595,11 +662,8 @@ lanzar_trabajo <- function(tipo, ...) {
     caducos <- viejos[!is.na(edad) & edad > 24]
     if (length(caducos)) unlink(caducos, recursive = TRUE)
   }
-  bloqueos <- list.files(DIR_TRABAJOS, pattern = "\\.lock$", full.names = TRUE)
-  if (length(bloqueos)) {
-    edad_bloqueos <- as.numeric(difftime(Sys.time(), file.info(bloqueos)$mtime, units = "mins"))
-    if (sum(!is.na(edad_bloqueos) & edad_bloqueos < 10) >= 2L) return(NULL)
-  }
+  if (hay_analisis_en_curso() || marca_reciente(ARCHIVO_BLOQUEO_RECOLECCION, 8, "hours") ||
+      marca_reciente(ARCHIVO_RECOLECCION_ENCOLADA, 5, "mins")) return(NULL)
   id <- substr(digest::digest(paste(Sys.time(), Sys.getpid(), stats::runif(1)), "sha256"), 1L, 16L)
   # El worker crea el lock de forma atómica. No reservarlo aquí: eso impedía
   # que el propio worker arrancara al encontrar el archivo ya existente.
@@ -758,6 +822,11 @@ RUTAS <- list(
       unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
     }
 
+    if (hay_analisis_en_curso()) {
+      res$status <- 409L
+      return(list(mensaje = "Hay un análisis en curso; espera a que termine para no agotar la memoria."))
+    }
+
     binario_rscript <- ruta_rscript()
     archivo_recolector <- file.path(RAIZ, "scraping", "run_daily.R")
     if (!nzchar(binario_rscript) || !file.exists(binario_rscript) || !file.exists(archivo_recolector)) {
@@ -807,7 +876,7 @@ RUTAS <- list(
     estado
   },
   "/api/sources" = function() {
-    valor <- leer_json(ARCHIVO_FUENTES, list(fuentes = list()))
+    valor <- leer_fuentes()
     fuentes <- valor$fuentes %||% valor$sources %||% list()
     fuentes <- Filter(function(fuente) is.list(fuente), fuentes)
     informes <- catalogo()$fuentes %||% list()
