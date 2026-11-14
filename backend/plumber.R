@@ -2,6 +2,17 @@
 suppressPackageStartupMessages(library(plumber))
 source(if (file.exists("backend/nucleo.R")) "backend/nucleo.R" else "nucleo.R", local = .GlobalEnv)
 
+#* Manejo de errores: registra la falla y devuelve un mensaje genérico.
+#* @plumber
+function(pr) {
+  pr$setErrorHandler(function(req, res, err) {
+    registrar_falla("plumber", err)
+    res$status <- 500L
+    list(mensaje = "Error interno del servidor.")
+  })
+  pr
+}
+
 #* Cabeceras de seguridad para archivos servidos por el navegador.
 #* @filter seguridad
 function(req, res) {
@@ -43,9 +54,11 @@ function(q = "", categoria = "", limit = 6L) RUTAS[["/api/search"]](q = q, categ
 #* Responde consultas como "becas antes de fin de mes".
 #* @param q Consulta de la persona.
 #* @param limit Cantidad máxima de resultados.
+#* @param en_linea Con "1" fuerza la consulta en línea de las fuentes relacionadas.
+#* @param contexto Historial compacto de la conversación y resultados recientes.
 #* @serializer unboxedJSON list(na = "null", null = "null")
 #* @get /api/chat
-function(q = "", limit = 6L) RUTAS[["/api/chat"]](q = q, limit = limit)
+function(q = "", limit = 6L, en_linea = "", contexto = "") RUTAS[["/api/chat"]](q = q, limit = limit, en_linea = en_linea, contexto = contexto)
 
 #* Lista observaciones de precios con procedencia y fecha.
 #* @param q Nombre o descripción del producto.
@@ -93,6 +106,11 @@ function(solicitud_id = "") RUTAS[["/api/collection-status"]](solicitud_id = sol
 #* @serializer unboxedJSON list(na = "null", null = "null")
 #* @get /api/sources
 function() RUTAS[["/api/sources"]]()
+
+#* Estado de las fuentes: barreras, no verificadas, noticias y normativa reciente.
+#* @serializer unboxedJSON list(na = "null", null = "null")
+#* @get /api/mapache/estado
+function() RUTAS[["/api/mapache/estado"]]()
 
 #* Estado o resultado de un análisis en segundo plano.
 #* @param id Identificador del trabajo.

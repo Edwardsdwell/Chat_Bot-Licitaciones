@@ -2,6 +2,9 @@ suppressPackageStartupMessages({
     library(jsonlite)
 })
 
+# Zona horaria fija: evita que el catálogo "venza" a media tarde si el servidor está en UTC.
+Sys.setenv(TZ = Sys.getenv("LA_PALA_TZ", "America/La_Paz"))
+
 `%||%` <- function(x, y) {
   if (is.null(x) || length(x) == 0L || all(is.na(x))) y else x
 }
@@ -59,10 +62,33 @@ source(file.path(RAIZ, "analisis", "motor.R"), local = .GlobalEnv)
 
 registrar_falla <- function(origen, error) {
   dir.create(dirname(ARCHIVO_FALLAS), recursive = TRUE, showWarnings = FALSE)
-  detalle <- gsub("[\\r\\n\\t]+", " ", conditionMessage(error))
+  detalle <- gsub("[\r\n\t]+", " ", conditionMessage(error))
   linea <- sprintf("%s [ERROR] %s: %s\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), origen, detalle)
   try(cat(linea, file = ARCHIVO_FALLAS, append = TRUE), silent = TRUE)
   invisible(NULL)
+}
+
+ruta_rscript <- function() {
+  b <- Sys.which("Rscript")
+  if (nzchar(b)) b else file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
+}
+
+# Lanza un script en segundo plano. Las variables de entorno se fijan con Sys.setenv
+# (no con env= de system2, que no las entrecomilla y permite inyección de comandos).
+lanzar_rscript <- function(archivo, args = character(), entorno = character()) {
+  nombres <- names(entorno)
+  if (length(nombres)) {
+    previos <- Sys.getenv(nombres, unset = NA_character_, names = FALSE)
+    on.exit({
+      for (i in seq_along(nombres)) {
+        if (is.na(previos[[i]])) Sys.unsetenv(nombres[[i]])
+        else do.call(Sys.setenv, stats::setNames(list(previos[[i]]), nombres[[i]]))
+      }
+    }, add = TRUE)
+    do.call(Sys.setenv, as.list(entorno))
+  }
+  system2(ruta_rscript(), args = shQuote(c(archivo, as.character(args))),
+          stdout = FALSE, stderr = FALSE, wait = FALSE)
 }
 
 leer_json <- function(ruta, alternativo = list()) {
@@ -78,6 +104,12 @@ catalogo <- local({
     valor
   }
 })
+
+fecha_segura <- function(valor) {
+  texto <- texto_seguro(valor)
+  if (!nzchar(texto)) return(as.Date(NA))
+  as.Date(substr(texto, 1L, 10L), format = "%Y-%m-%d")
+}
 
 estado_bloqueos <- function() {
   configuracion <- leer_json(ARCHIVO_FUENTES, list())
@@ -136,7 +168,7 @@ iniciar_recoleccion_si_necesaria <- function(categoria = "") {
   if (file.exists(ARCHIVO_RECOLECCION_ENCOLADA)) unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
 
   registro <- leer_json(ARCHIVO_ESTADO_RECOLECCION, list())
-  fecha_registro <- suppressWarnings(as.Date(substr(texto_seguro(registro$actualizado_en), 1L, 10L)))
+  fecha_registro <- fecha_segura(registro$actualizado_en)
   if (identical(texto_seguro(registro$estado), "completada") && !identical(texto_seguro(registro$modo), "consulta") && !is.na(fecha_registro) && fecha_registro == Sys.Date()) {
     return(list(estado = "completada", iniciado = FALSE))
   }
@@ -145,27 +177,19 @@ iniciar_recoleccion_si_necesaria <- function(categoria = "") {
     return(list(estado = "fallida", iniciado = FALSE))
   }
 
-  binario <- Sys.which("Rscript")
-  if (!nzchar(binario)) {
-    candidato <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
-    if (file.exists(candidato)) binario <- candidato
-  }
+  binario <- ruta_rscript()
   archivo <- file.path(RAIZ, "scraping", "run_daily.R")
-  if (!nzchar(binario) || !file.exists(archivo) || !isTRUE(dir.create(ARCHIVO_RECOLECCION_ENCOLADA, showWarnings = FALSE))) {
-    detalle <- if (!nzchar(binario)) "No se encontró Rscript en la instalación activa." else if (!file.exists(archivo)) "No se encontró scraping/run_daily.R." else "No se pudo crear la marca de cola del worker."
+  if (!nzchar(binario) || !file.exists(binario) || !file.exists(archivo) || !isTRUE(dir.create(ARCHIVO_RECOLECCION_ENCOLADA, showWarnings = FALSE))) {
+    detalle <- if (!nzchar(binario) || !file.exists(binario)) "No se encontró Rscript en la instalación activa." else if (!file.exists(archivo)) "No se encontró scraping/run_daily.R." else "No se pudo crear la marca de cola del worker."
     registrar_falla("worker/no_disponible", simpleError(detalle))
     return(list(estado = "no_disponible", iniciado = FALSE))
   }
 
   solicitud_id <- paste0("consulta-", format(Sys.time(), "%Y%m%d%H%M%S"), "-", Sys.getpid())
-  inicio <- tryCatch(system2(
-    binario,
-    args = shQuote(archivo),
-    stdout = FALSE,
-    stderr = FALSE,
-    wait = FALSE,
-    env = c(paste0("LA_PALA_SOLICITUD_ID=", solicitud_id), paste0("LA_PALA_CATEGORIA_PRIORITARIA=", categoria))
-  ), error = function(error) error)
+  inicio <- tryCatch(lanzar_rscript(archivo, entorno = c(
+    LA_PALA_SOLICITUD_ID = solicitud_id,
+    LA_PALA_CATEGORIA_PRIORITARIA = categoria
+  )), error = function(error) error)
   if (inherits(inicio, "error")) {
     unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
     registrar_falla("worker/inicio", inicio)
@@ -193,12 +217,13 @@ iniciar_consulta_en_linea <- function(consulta, categoria = "", forzar = FALSE) 
     return(list(estado = "no_disponible", iniciado = FALSE))
   }
   solicitud_id <- paste0("enlinea-", format(Sys.time(), "%Y%m%d%H%M%S"), "-", Sys.getpid())
-  inicio <- tryCatch(system2(
-    binario, args = shQuote(archivo), stdout = FALSE, stderr = FALSE, wait = FALSE,
-    env = c(paste0("LA_PALA_SOLICITUD_ID=", solicitud_id), "LA_PALA_MODO=consulta",
-            paste0("LA_PALA_CONSULTA=", gsub("[\r\n\"']", " ", consulta)),
-            paste0("LA_PALA_CATEGORIA_PRIORITARIA=", categoria))
-  ), error = function(e) e)
+  consulta_limpia <- trimws(gsub("[[:cntrl:]]+", " ", consulta))
+  inicio <- tryCatch(lanzar_rscript(archivo, entorno = c(
+    LA_PALA_SOLICITUD_ID = solicitud_id,
+    LA_PALA_MODO = "consulta",
+    LA_PALA_CONSULTA = consulta_limpia,
+    LA_PALA_CATEGORIA_PRIORITARIA = categoria
+  )), error = function(e) e)
   if (inherits(inicio, "error")) {
     unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
     registrar_falla("consulta_en_linea/inicio", inicio)
@@ -219,13 +244,6 @@ categorias <- list(
   list(id = "normativa", nombre = "Normativa y Gaceta", descripcion = "Leyes, decretos y otras publicaciones oficiales.")
 )
 
-fecha_segura <- function(valor) {
-  texto <- texto_seguro(valor)
-  if (!nzchar(texto)) return(as.Date(NA))
-  fecha <- suppressWarnings(as.Date(substr(texto, 1L, 10L)))
-  if (length(fecha) == 1L && !is.na(fecha)) fecha else as.Date(NA)
-}
-
 oportunidad_abierta <- function(oportunidad) {
   if (!is.list(oportunidad)) return(FALSE)
   categoria <- texto_seguro(oportunidad$categoria)
@@ -234,7 +252,7 @@ oportunidad_abierta <- function(oportunidad) {
   estado <- texto_seguro(oportunidad$estado, "abierta")
   if (!nzchar(categoria) || !nzchar(titulo) || !grepl("^https://", url, ignore.case = TRUE)) return(FALSE)
   if (estado %in% c("cerrada", "vencida", "eliminada", "duplicada", "rechazada")) return(FALSE)
-  verificacion <- suppressWarnings(as.Date(substr(texto_seguro(oportunidad$verificado_en %||% oportunidad$extraido_en), 1L, 10L)))
+  verificacion <- fecha_segura(oportunidad$verificado_en %||% oportunidad$extraido_en)
   if (is.na(verificacion) || verificacion != Sys.Date()) return(FALSE)
   limite <- fecha_segura(oportunidad$fecha_limite)
   if (!is.na(limite) && limite < Sys.Date()) return(FALSE)
@@ -275,14 +293,14 @@ detectar_categoria <- function(consulta, categoria = "") {
   if (nzchar(categoria) && categoria %in% vapply(categorias, `[[`, character(1), "id")) return(categoria)
   texto <- normalizar_texto(consulta)
   reglas <- list(
-    precios = "precio|alquiler|farmacia|canasta|repuesto|cuesta|costo",
-    becas = "beca|pasantia|estudiante|universidad|academica|movilidad|practica|posgrado|maestria|doctorado|intercambio",
-    empleo_publico = "empleo(s)?|trabajo(s)?|chamba(s)?|vacante(s)?|puesto(s)?|laboral(es)?|personal|contratacion de personal|cargo publico|servidor publico|recursos humanos",
-    contrataciones = "sicoes|licitacion(es)?|contratacion(es)?|contrato(s)?|compras? publicas?|proveer|proveedor",
+    precios = "precio|alquiler|farmacia|canasta|repuesto|cuesta|costo|valor",
+    becas = "beca(s)?|pasantia(s)?|estudiante|universidad|academica|movilidad|practica(s)?|posgrado|maestria|doctorado|intercambio|estudiar",
+    empleo_publico = "empleo(s)?|trabajo(s)?|chamba(s)?|vacante(s)?|puesto(s)?|laboral(es)?|personal|contratacion de personal|cargo publico|servidor publico|recursos humanos|sueldo|salario|remuneracion|haber mensual|postular a un cargo",
+    contrataciones = "sicoes|licitacion(es)?|contratacion(es)?|contrato(s)?|compras? publicas?|proveer|proveedor|adquisicion(es)?|bienes y servicios",
     merito = "concurso de merito|merito|evaluacion|seleccion academica",
-    fondos = "fondo|financiamiento|financiar|emprend|ong|organizacion|capital semilla",
-    normativa = "gaceta|normativa|ley|decreto|resolucion|reglamento",
-    convocatorias = "convocatoria|llamado|concurso"
+    fondos = "fondo|financiamiento|financiar|emprend|(^| )ong( |$)|organizacion|capital semilla",
+    normativa = "gaceta|normativa|ley(es)?|decreto(s)?|resolucion(es)?|reglamento(s)?|norma(s)?",
+    convocatorias = "convocatoria(s)?|llamado(s)?|concurso(s)?|seleccion|proceso de merito"
   )
   for (id in names(reglas)) if (grepl(reglas[[id]], texto)) return(id)
   ""
@@ -314,7 +332,7 @@ buscar_oportunidades <- function(consulta = "", categoria = "", hasta = NULL, li
     if (any(puntajes > 0)) {
       resultados <- resultados[puntajes > 0]
       puntajes <- puntajes[puntajes > 0]
-    } else if (!nzchar(elegida)) {
+    } else if (!nzchar(elegida) || length(tokenizar(texto)) > 2L) {
       resultados <- list()
       puntajes <- numeric()
     }
@@ -337,9 +355,9 @@ oportunidades_recientes <- function(limite = 6L, categoria = "") {
     for (campo in c("fecha_publicacion", "extraido_en", "verificado_en")) {
       valor <- texto_seguro(item[[campo]])
       if (!nzchar(valor)) next
-      fecha <- suppressWarnings(as.POSIXct(valor, tz = "America/La_Paz", tryFormats = c(
+      fecha <- tryCatch(suppressWarnings(as.POSIXct(valor, tz = "America/La_Paz", tryFormats = c(
         "%Y-%m-%dT%H:%M:%OS%z", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"
-      )))
+      ))), error = function(e) NA)
       if (length(fecha) == 1L && !is.na(fecha)) return(as.numeric(fecha))
     }
     0
@@ -361,7 +379,100 @@ buscar_precios <- function(consulta = "", departamento = "", limite = 12L) {
   resultados[order(fechas, decreasing = TRUE)] |> head(limitar(limite, 12L))
 }
 
-respuesta_chat <- function(consulta, categoria = "", limite = 6L) {
+normalizar_contexto_chat <- function(contexto) {
+  if (is.list(contexto)) return(contexto)
+  texto <- texto_seguro(contexto)
+  if (!nzchar(texto) || nchar(texto) > 5000L) return(list())
+  tryCatch(jsonlite::fromJSON(texto, simplifyVector = FALSE), error = function(e) list())
+}
+
+pedido_detalle <- function(consulta) {
+  grepl("mas detalle|mas informacion|informacion detallada|dime mas|amplia la informacion|requisit|document|perfil|fecha limite|plazo|cuando cierra|ubicacion|donde queda|lugar de trabajo|sueldo|salario|remuneracion|como postular|como me inscrib|correo de contacto|enlace exacto|ficha completa", normalizar_texto(consulta))
+}
+
+resolver_oportunidad_contextual <- function(consulta, contexto, candidatas = list()) {
+  disponibles <- oportunidades_activas()
+  buscar_id <- function(id) {
+    if (!nzchar(id)) return(NULL)
+    hallada <- Filter(function(o) identical(texto_seguro(o$id), id), disponibles)
+    if (length(hallada)) hallada[[1L]] else NULL
+  }
+  seleccion <- texto_seguro(contexto$seleccion)
+  item <- buscar_id(seleccion)
+  if (!is.null(item)) return(item)
+  ids <- as.character(unlist(contexto$ultimos_ids %||% character(), use.names = FALSE))
+  if (!length(ids) && length(contexto$turnos)) {
+    ultimo <- contexto$turnos[[length(contexto$turnos)]]
+    ids <- as.character(unlist(ultimo$ids %||% character(), use.names = FALSE))
+  }
+  ordinal <- regmatches(normalizar_texto(consulta), regexpr("(^| )(primera|primer|1|segunda|segundo|2|tercera|tercer|3)( |$)", normalizar_texto(consulta)))
+  if (length(ordinal) && nzchar(ordinal)) {
+    numero <- if (grepl("segund|(^| )2( |$)", ordinal)) 2L else if (grepl("tercer|(^| )3( |$)", ordinal)) 3L else 1L
+    if (length(ids) >= numero) item <- buscar_id(ids[[numero]])
+    if (is.null(item) && length(candidatas) >= numero) item <- candidatas[[numero]]
+    if (!is.null(item)) return(item)
+  }
+  if (length(ids) == 1L) {
+    item <- buscar_id(ids[[1L]])
+    if (!is.null(item)) return(item)
+  }
+  if (length(candidatas) == 1L) return(candidatas[[1L]])
+  NULL
+}
+
+lector_detalle_publicacion <- local({
+  lector <- new.env(parent = .GlobalEnv)
+  cache <- new.env(parent = emptyenv())
+  cargado <- FALSE
+  function(oportunidad, consulta = "") {
+    url <- texto_seguro(oportunidad$url)
+    clave <- paste0(texto_seguro(oportunidad$id), "|", url)
+    entrada <- cache[[clave]]
+    if (!is.null(entrada) && as.numeric(difftime(Sys.time(), entrada$hora, units = "mins")) < 20) return(entrada$valor)
+    if (!cargado) {
+      archivo <- file.path(RAIZ, "scraping", "collect.R")
+      if (!file.exists(archivo)) stop("No está disponible el extractor de publicaciones.")
+      sys.source(archivo, envir = lector)
+      cargado <<- TRUE
+    }
+    fuente <- Filter(function(x) identical(texto_seguro(x$id), texto_seguro(oportunidad$fuente_id)), fuentes_configuradas())
+    if (!length(fuente)) return(list(estado = "no_consultable"))
+    valor <- lector$extraer_detalle_publicacion(url, fuente[[1L]], consulta, texto_seguro(oportunidad$titulo))
+    cache[[clave]] <- list(hora = Sys.time(), valor = valor)
+    valor
+  }
+})
+
+respuesta_detalle <- function(oportunidad, detalle, consulta) {
+  titulo <- texto_seguro(oportunidad$titulo, "la publicación seleccionada")
+  entidad <- texto_seguro(oportunidad$entidad, texto_seguro(oportunidad$fuente_nombre, "la fuente pública"))
+  if (!identical(texto_seguro(detalle$estado), "ok")) {
+    return(paste0("La oferta «", titulo, "» corresponde a ", entidad, ". No pude obtener texto detallado de la ficha en esta consulta; el enlace lleva a la publicación registrada para verificarla directamente."))
+  }
+  campos <- detalle$campos %||% list()
+  es_requisito <- grepl("requisit|document|perfil", normalizar_texto(consulta))
+  es_plazo <- grepl("plazo|fecha|cierre|cuando vence", normalizar_texto(consulta))
+  es_lugar <- grepl("ubicacion|lugar|donde", normalizar_texto(consulta))
+  grupos <- if (es_requisito) c("requisitos") else if (es_plazo) c("plazo") else if (es_lugar) c("ubicacion") else c("requisitos", "ubicacion", "postulacion", "remuneracion", "plazo")
+  partes <- c(paste0("En «", titulo, "» de ", entidad, ":"))
+  for (grupo in grupos) {
+    valores <- if (identical(grupo, "plazo")) {
+      fecha <- fecha_segura(detalle$fecha_limite)
+      if (!is.na(fecha)) paste0("Fecha límite registrada: ", format(fecha, "%d/%m/%Y"), ".") else character()
+    } else as.character(unlist(campos[[grupo]] %||% character(), use.names = FALSE))
+    valores <- valores[nzchar(valores)]
+    if (length(valores)) partes <- c(partes, paste0(switch(grupo, requisitos = "Requisitos", ubicacion = "Ubicación o modalidad", postulacion = "Postulación y contacto", remuneracion = "Remuneración", plazo = "Plazo"), ": ", paste(head(valores, 2L), collapse = " ")))
+  }
+  if (length(partes) == 1L) {
+    partes <- c(partes, "La lectura no identificó un dato explícito para ese punto en el contenido publicado. Revisa el documento oficial antes de postular.")
+  } else {
+    partes <- c(partes, "Estos datos se extrajeron de la ficha consultada; confirma cualquier cambio en la publicación oficial.")
+  }
+  paste(partes, collapse = " ")
+}
+
+respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NULL) {
+  contexto <- normalizar_contexto_chat(contexto)
   texto_estado <- normalizar_texto(consulta)
   if (grepl("(^| )hay bloqueos( |$)|bloqueos en las fuentes|fuentes bloqueadas", texto_estado)) {
     fuentes <- catalogo()$fuentes %||% list()
@@ -388,6 +499,12 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L) {
                 fuentes_recomendadas = fuentes_recomendadas("", 3L)))
   }
   categoria_detectada <- detectar_categoria(consulta, categoria)
+  contexto_anterior <- contexto$turnos %||% list()
+  es_referencial <- grepl("(^| )(esa|ese|esta|este|la primera|el primero|la segunda|el segundo|esa oferta|ese empleo)( |$)", texto_estado)
+  if (!nzchar(categoria_detectada) && es_referencial) {
+    seleccion_contextual <- resolver_oportunidad_contextual(consulta, contexto)
+    if (!is.null(seleccion_contextual)) categoria_detectada <- texto_seguro(seleccion_contextual$categoria)
+  }
   if (identical(categoria_detectada, "precios")) {
     precios <- buscar_precios(consulta, limite = 12L)
     respuesta <- if (length(precios)) {
@@ -399,6 +516,22 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L) {
   }
 
   coincidencias <- buscar_oportunidades(consulta, categoria_detectada, limite = limite)
+  categoria_respuesta <- coincidencias$categoria
+  if (pedido_detalle(consulta)) {
+    seleccion <- resolver_oportunidad_contextual(consulta, contexto, coincidencias$oportunidades)
+    if (is.null(seleccion)) {
+      if (length(coincidencias$oportunidades) > 1L) {
+        return(list(respuesta = "Encontré varias publicaciones relacionadas. Elige una con «Ver detalles» o dime «la primera», «la segunda» o el título para consultar su ficha exacta.", categoria = categoria_respuesta, oportunidades = coincidencias$oportunidades, total = coincidencias$total, filtro_fecha = coincidencias$fecha_tope, detalle_solicitado = TRUE))
+      }
+      return(list(respuesta = "No encuentro una publicación concreta para abrir. Dime el título, la entidad o la ciudad; así puedo buscar la ficha y extraer sus requisitos, plazo o forma de postulación.", categoria = categoria_respuesta, oportunidades = list(), total = 0L, filtro_fecha = coincidencias$fecha_tope, detalle_solicitado = TRUE))
+    }
+    detalle <- tryCatch(lector_detalle_publicacion(seleccion, consulta), error = function(e) {
+      registrar_falla("chat/detalle_publicacion", e)
+      list(estado = "no_consultable")
+    })
+    return(list(respuesta = respuesta_detalle(seleccion, detalle, consulta), categoria = texto_seguro(seleccion$categoria), oportunidades = list(seleccion), total = 1L, filtro_fecha = texto_seguro(seleccion$fecha_limite), detalle = detalle, detalle_solicitado = TRUE))
+  }
+
   alternativa_reciente <- FALSE
   categoria_respuesta <- coincidencias$categoria
   if (coincidencias$total) {
@@ -408,34 +541,30 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L) {
       }, character(1))
       paste0(" de ", tolower(nombre[nzchar(nombre)][1L]))
     } else ""
-    fecha <- if (nzchar(coincidencias$fecha_tope)) paste0(" con fecha límite hasta el ", format(as.Date(coincidencias$fecha_tope), "%d/%m/%Y")) else ""
-    respuesta <- paste0("Encontré ", coincidencias$total, " oportunidades", texto_categoria, fecha, ". Revisa requisitos y vigencia en la publicación original.")
+    fecha <- if (nzchar(coincidencias$fecha_tope)) paste0(" con fecha límite hasta el ", format(fecha_segura(coincidencias$fecha_tope), "%d/%m/%Y")) else ""
+    principal <- coincidencias$oportunidades[[1L]]
+    ficha <- texto_seguro(principal$titulo, "una publicación")
+    entidad <- texto_seguro(principal$entidad, texto_seguro(principal$fuente_nombre))
+    ubicacion <- texto_seguro(principal$departamento)
+    plazo <- texto_seguro(principal$fecha_limite)
+    resumen <- texto_seguro(principal$descripcion)
+    if (identical(texto_seguro(principal$confianza_extraccion), "requiere_revision")) resumen <- ""
+    resumen <- gsub("[[:space:]]+", " ", resumen)
+    if (nchar(resumen) > 240L) resumen <- paste0(substr(resumen, 1L, 237L), "…")
+    fecha_plazo <- fecha_segura(plazo)
+    rasgos <- c(if (nzchar(entidad)) paste0("de ", entidad), if (nzchar(ubicacion)) paste0("en ", ubicacion), if (!is.na(fecha_plazo)) paste0("cierre ", format(fecha_plazo, "%d/%m/%Y")))
+    respuesta <- paste0("Encontré ", coincidencias$total, " oportunidades", texto_categoria, fecha, ". La coincidencia principal es «", ficha, "»", if (length(rasgos)) paste0(" (", paste(rasgos, collapse = "; "), ")") else "", ".", if (nzchar(resumen)) paste0(" La ficha indica: ", resumen) else "", " Puedes abrir la oferta concreta o solicitar sus requisitos, ubicación y forma de postulación.")
   } else if (nzchar(coincidencias$fecha_tope)) {
-    respuesta <- paste0("No encontré oportunidades registradas con fecha límite hasta el ", format(as.Date(coincidencias$fecha_tope), "%d/%m/%Y"), ". Puedes ampliar el plazo o consultar otra categoría.")
+    respuesta <- paste0("No encontré oportunidades registradas con fecha límite hasta el ", format(fecha_segura(coincidencias$fecha_tope), "%d/%m/%Y"), ". Puedes ampliar el plazo o consultar otra categoría.")
   } else {
-    recientes <- if (nzchar(coincidencias$categoria)) {
-      oportunidades_recientes(limite, coincidencias$categoria)
+    if (!nzchar(coincidencias$categoria) && length(tokenizar(consulta)) <= 2L) {
+      respuesta <- "Puedo ayudarte, pero necesito acotar el tema. ¿Buscas empleo, becas, compras públicas, fondos o normativa? También puedes añadir ciudad, entidad o una palabra del título."
     } else {
-      oportunidades_recientes(limite, "empleo_publico")
-    }
-    tipo_alternativa <- if (length(recientes) && !nzchar(coincidencias$categoria)) "empleos" else "publicaciones"
-    if (!length(recientes) && !nzchar(coincidencias$categoria)) recientes <- oportunidades_recientes(limite)
-    if (length(recientes)) {
-      coincidencias$oportunidades <- recientes
-      coincidencias$total <- length(recientes)
-      alternativa_reciente <- TRUE
-      if (identical(tipo_alternativa, "empleos")) {
-        categoria_respuesta <- "empleo_publico"
-        respuesta <- "Aquí tienes los empleos públicos más recientes."
-      } else if (nzchar(coincidencias$categoria)) {
-        nombre <- vapply(categorias, function(item) if (identical(item$id, coincidencias$categoria)) item$nombre else "", character(1))
-        respuesta <- paste0("Aquí tienes las publicaciones más recientes de ", tolower(nombre[nzchar(nombre)][1L]), ".")
-      } else {
-        respuesta <- "Aquí tienes las publicaciones más recientes disponibles."
-      }
-      coincidencias$alternativa <- tipo_alternativa
-    } else {
-      respuesta <- "Aún no hay publicaciones vigentes registradas para esa consulta. Cuando las fuentes aporten resultados aparecerán aquí; La Pala no completa datos supuestos."
+      tema <- if (nzchar(coincidencias$categoria)) {
+        categoria <- Filter(function(x) identical(x$id, coincidencias$categoria), categorias)
+        if (length(categoria)) tolower(categoria[[1L]]$nombre) else "esa categoría"
+      } else "esa combinación de términos"
+      respuesta <- paste0("No encontré publicaciones vigentes que coincidan con ", tema, ". No mostraré ofertas de otro tema como si respondieran a tu pregunta. Prueba con una entidad, ciudad o término del título.")
     }
   }
   list(
@@ -444,7 +573,7 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L) {
     oportunidades = coincidencias$oportunidades,
     total = coincidencias$total,
     filtro_fecha = coincidencias$fecha_tope,
-    alternativa_reciente = if (isTRUE(alternativa_reciente)) coincidencias$alternativa else ""
+    alternativa_reciente = ""
   )
 }
 
@@ -458,7 +587,6 @@ resumen_analitico <- local({
 })
 
 DIR_TRABAJOS <- file.path(DIR_LOGS, "trabajos")
-ruta_rscript <- function() { b <- Sys.which("Rscript"); if (nzchar(b)) b else file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript") }
 lanzar_trabajo <- function(tipo, ...) {
   dir.create(DIR_TRABAJOS, recursive = TRUE, showWarnings = FALSE)
   viejos <- list.files(DIR_TRABAJOS, full.names = TRUE)
@@ -475,10 +603,8 @@ lanzar_trabajo <- function(tipo, ...) {
   id <- substr(digest::digest(paste(Sys.time(), Sys.getpid(), stats::runif(1)), "sha256"), 1L, 16L)
   # El worker crea el lock de forma atómica. No reservarlo aquí: eso impedía
   # que el propio worker arrancara al encontrar el archivo ya existente.
-  argumentos <- c(file.path(RAIZ, "analisis", "trabajo.R"), tipo, id, ...)
   ok <- tryCatch({
-    system2(ruta_rscript(), shQuote(argumentos), stdout = FALSE, stderr = FALSE,
-            wait = FALSE, env = paste0("LA_PALA_ROOT=", RAIZ))
+    lanzar_rscript(file.path(RAIZ, "analisis", "trabajo.R"), c(tipo, id, ...), c(LA_PALA_ROOT = RAIZ))
     TRUE
   }, error = function(e) FALSE)
   if (!ok) return(NULL)
@@ -499,7 +625,7 @@ respuesta_analitica <- function(consulta) {
     if (is.null(id)) return(c(list(respuesta = "Hay análisis en curso; espera unos segundos e inténtalo de nuevo."), base))
     return(c(list(respuesta = paste0("Estoy analizando ", url, " en segundo plano. El resultado aparecerá en el panel de analítica.")), base, list(trabajo = id)))
   }
-  if (!grepl("seo|pagerank|page rank|fraude|estafa|estadistic|comparativ|grafo|enlaces|distribucion|analitic", normalizar_texto(consulta))) return(NULL)
+  if (!grepl("(^| )(seo|pagerank|page rank)( |$)|fraude|estafa|estadistic|comparativ|grafo|enlaces|distribucion|analitic", normalizar_texto(consulta))) return(NULL)
   r <- resumen_analitico()
   if (isTRUE(r$vacio)) return(c(list(respuesta = "Aún no hay datos vigentes para analizar. Inicia la minería web y vuelve a consultar."), base))
   t <- r$totales
@@ -525,9 +651,10 @@ RUTAS <- list(
          filtro_fecha = resultado$fecha_tope, oportunidades = resultado$oportunidades,
          jobs = resultado$oportunidades)
   },
-  "/api/chat" = function(q = "", limit = 6L, en_linea = "") {
+  "/api/chat" = function(q = "", limit = 6L, en_linea = "", contexto = "") {
     tryCatch({
-      resultado <- respuesta_chat(q, limite = limit)
+      resultado <- respuesta_chat(q, limite = limit, contexto = contexto)
+      if (isTRUE(resultado$detalle_solicitado)) return(resultado)
       if (!is.null(resultado$vista) || isTRUE(resultado$conversacional)) return(resultado)
       worker <- iniciar_recoleccion_si_necesaria(resultado$categoria %||% "")
       # Consulta en línea: sin coincidencias reales (o por petición expresa), revisa en vivo
@@ -606,22 +733,22 @@ RUTAS <- list(
       res$status <- 503L
       return(list(mensaje = "La actualización manual no está configurada en el servidor."))
     }
-  
+
     clave_recibida <- sub("^Bearer[[:space:]]+", "", req$HTTP_AUTHORIZATION %||% "", ignore.case = TRUE)
     if (!identical(clave_recibida, clave_configurada)) {
       res$status <- 401L
       return(list(mensaje = "La contraseña no es correcta."))
     }
-  
+
     if (file.exists(ARCHIVO_BLOQUEO_RECOLECCION)) {
       antiguedad <- as.numeric(difftime(Sys.time(), file.info(ARCHIVO_BLOQUEO_RECOLECCION)$mtime, units = "hours"))
       if (is.finite(antiguedad) && antiguedad < 8) {
         res$status <- 409L
         return(list(mensaje = "Ya hay una recolección en curso."))
       }
-      unlink(ARCHIVO_BLOQUEO_RECOLECCION)
+      unlink(ARCHIVO_BLOQUEO_RECOLECCION, recursive = TRUE)
     }
-  
+
     if (file.exists(ARCHIVO_RECOLECCION_ENCOLADA)) {
       antiguedad <- as.numeric(difftime(Sys.time(), file.info(ARCHIVO_RECOLECCION_ENCOLADA)$mtime, units = "mins"))
       if (is.finite(antiguedad) && antiguedad < 5) {
@@ -630,20 +757,16 @@ RUTAS <- list(
       }
       unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
     }
-  
-    binario_rscript <- Sys.which("Rscript")
-    if (!nzchar(binario_rscript)) {
-      candidato <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
-      if (file.exists(candidato)) binario_rscript <- candidato
-    }
+
+    binario_rscript <- ruta_rscript()
     archivo_recolector <- file.path(RAIZ, "scraping", "run_daily.R")
-    if (!nzchar(binario_rscript) || !file.exists(archivo_recolector)) {
-      detalle <- if (!nzchar(binario_rscript)) "No se encontró Rscript en la instalación activa." else "No se encontró scraping/run_daily.R."
+    if (!nzchar(binario_rscript) || !file.exists(binario_rscript) || !file.exists(archivo_recolector)) {
+      detalle <- if (!nzchar(binario_rscript) || !file.exists(binario_rscript)) "No se encontró Rscript en la instalación activa." else "No se encontró scraping/run_daily.R."
       registrar_falla("worker/manual/no_disponible", simpleError(detalle))
       res$status <- 500L
       return(list(mensaje = "No pude iniciar la actualización ahora. Inténtalo de nuevo más tarde."))
     }
-  
+
     dir.create(dirname(ARCHIVO_ESTADO_RECOLECCION), recursive = TRUE, showWarnings = FALSE)
     dir.create(DIR_LOGS, recursive = TRUE, showWarnings = FALSE)
     if (!isTRUE(dir.create(ARCHIVO_RECOLECCION_ENCOLADA, showWarnings = FALSE))) {
@@ -651,21 +774,15 @@ RUTAS <- list(
       return(list(mensaje = "Otra exploración acaba de ponerse en marcha."))
     }
     solicitud_id <- paste0("interfaz-", format(Sys.time(), "%Y%m%d%H%M%S"), "-", Sys.getpid())
-    inicio <- tryCatch(system2(
-      binario_rscript,
-      args = shQuote(archivo_recolector),
-      stdout = FALSE,
-      stderr = FALSE,
-      wait = FALSE,
-      env = paste0("LA_PALA_SOLICITUD_ID=", solicitud_id)
-    ), error = function(error) error)
+    inicio <- tryCatch(lanzar_rscript(archivo_recolector,
+      entorno = c(LA_PALA_SOLICITUD_ID = solicitud_id)), error = function(error) error)
     if (inherits(inicio, "error")) {
       unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
       registrar_falla("worker/manual/inicio", inicio)
       res$status <- 500L
       return(list(mensaje = "No pude iniciar la actualización ahora. Inténtalo de nuevo más tarde."))
     }
-  
+
     res$status <- 202L
     list(estado = "iniciada", solicitud_id = solicitud_id, mensaje = "Se inició la revisión de todas las fuentes habilitadas.")
   },
@@ -715,6 +832,7 @@ RUTAS <- list(
     list(fuentes = lapply(fuentes, function(fuente) {
       id <- texto_seguro(fuente$id)
       informe <- Filter(function(item) identical(texto_seguro(item$id), id), informes)
+      if (length(informe)) informe <- informe[length(informe)]  # el más reciente, igual que estado_bloqueos
       habilitada <- isTRUE(fuente$habilitada %||% fuente$enabled %||% FALSE)
       estado <- if (!habilitada) {
         "Referencia guardada; revisión automática desactivada"
