@@ -2,7 +2,34 @@
 texto_seguro <- get0("texto_seguro", ifnotfound = function(x, d = "") { if (is.null(x) || !length(x) || is.list(x) || is.na(x[[1]])) return(d); v <- trimws(as.character(x[[1]])); if (nzchar(v)) v else d })
 fecha_segura <- get0("fecha_segura", ifnotfound = function(v) { t <- texto_seguro(v); if (!nzchar(t)) as.Date(NA) else suppressWarnings(as.Date(substr(t, 1, 10))) })
 # Motor analítico ligero: preprocesamiento, BM25, estadísticas, grafos, PageRank, SEO y fraude.
-PARADAS <- unique(strsplit(normalizar_texto("de la el en y a los las del se por un una con para al es su que o lo que cual como mas pero sus le ya este si porque esta entre cuando muy sin sobre tambien me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto antes algunos unos yo otro otra el ella estar estas algo puedo pueden quiero busco fin mes cierren cierre abiertas abierta"), " ")[[1]])
+# Proporciona una normalización básica si el proyecto principal no la definió.
+if (!exists("normalizar_texto", mode = "function", inherits = TRUE)) {
+  normalizar_texto <- function(x) {
+    x <- as.character(x)
+    x <- paste(x[!is.na(x)], collapse = " ")
+    x <- iconv(x, from = "", to = "ASCII//TRANSLIT", sub = "")
+    x <- tolower(x)
+    x <- gsub("[^a-z0-9]+", " ", x, perl = TRUE)
+    trimws(gsub("\\s+", " ", x, perl = TRUE))
+  }
+}
+PARADAS <- unique(strsplit(normalizar_texto("de la el en y a los las del se por un una con para al es su que o lo cual como mas pero sus le ya este si porque esta entre cuando muy sin sobre tambien me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos e esto antes algunos unos yo otro otra el ella estar estas algo puedo pueden quiero busco fin mes cierren cierre abiertas abierta dime muestra ver dame necesito quisiera"), " ", fixed = TRUE)[[1]])
+EXPANSIONES_LEXICAS <- list(
+  empleo = c("trabajo", "chamba", "vacante", "puesto", "laboral", "cargo", "personal", "seleccion"),
+  trabajo = c("empleo", "chamba", "vacante", "puesto", "laboral", "cargo"),
+  chamba = c("empleo", "trabajo", "vacante", "puesto", "laboral"),
+  beca = c("beca", "pasantia", "practica", "estudio", "posgrado", "movilidad", "intercambio"),
+  requisitos = c("requisito", "documento", "perfil", "formacion", "experiencia"),
+  plazo = c("plazo", "cierre", "fecha", "postulacion", "vence", "limite"),
+  sueldo = c("salario", "remuneracion", "haber", "mensual", "bs"),
+  salario = c("sueldo", "remuneracion", "haber", "mensual"),
+  lugar = c("ubicacion", "ciudad", "departamento", "presencial", "modalidad"),
+  postular = c("postulacion", "inscripcion", "presentar", "enviar", "correo"),
+  licitacion = c("sicoes", "contratacion", "compra", "proveedor", "adquisicion"),
+  sicoes = c("licitacion", "contratacion", "compra", "proveedor"),
+  decreto = c("normativa", "ley", "resolucion", "reglamento", "gaceta"),
+  normativa = c("ley", "decreto", "resolucion", "reglamento", "gaceta")
+)
 tokenizar <- function(x) { t <- strsplit(normalizar_texto(x), " ", fixed = TRUE)[[1]]; t <- t[nchar(t) > 2 & !t %in% PARADAS]; sub("(?<=.{3})(es|s)$", "", t, perl = TRUE) }
 campo <- function(ops, n, d = "") vapply(ops, function(o) texto_seguro(o[[n]], d), "")
 host <- function(u) tolower(sub("^https?://([^/:?#]+).*$", "\\1", u))
@@ -16,7 +43,11 @@ tokens_doc <- function(o) {
   if (is.null(CACHE[[k]])) CACHE[[k]] <- tokenizar(contenido)
   CACHE[[k]]
 }
-terminos_consulta <- function(texto) unique(tokenizar(texto))
+terminos_consulta <- function(texto) {
+  originales <- tokenizar(texto)
+  expandidos <- unlist(lapply(originales, function(t) EXPANSIONES_LEXICAS[[t]] %||% character()), use.names = FALSE)
+  unique(c(originales, tokenizar(expandidos)))
+}
 puntuar_bm25 <- function(ops, q, k1 = 1.4, b = .75) {
   d <- lapply(ops, tokens_doc); n <- length(d); if (!n || !length(q)) return(numeric(n))
   voc <- unique(unlist(d)); if (!length(voc)) return(numeric(n))
@@ -186,7 +217,7 @@ analizar_catalogo <- function(ops) {
   dc <- dias_cierre(ops)
   ld <- nchar(campo(ops, "descripcion"))
   fechas_pub <- campo(ops, "fecha_publicacion")
-  fechas_pub <- as.Date(substr(fechas_pub, 1L, 10L))
+  fechas_pub <- suppressWarnings(as.Date(substr(fechas_pub, 1L, 10L)))
   meses <- format(fechas_pub[!is.na(fechas_pub)], "%Y-%m")
   serie <- if (length(meses)) { z <- sort(table(meses)); lapply(seq_along(z), function(i) list(fecha = names(z)[i], n = as.integer(z[i]))) } else list()
 
@@ -414,9 +445,10 @@ comparar_sitios <- function(urls) {
   salida
 }
 rastrear <- function(u, max = 8L, pausa = 1) {
-  max <- min(max(2L, as.integer(max)), 12L); if (!url_publica(u) || !robots_ok(u)) return(list(error = "Dirección no permitida o bloqueada por robots.txt."))
+  max_paginas <- min(base::max(2L, as.integer(max)[1L]), 12L); if (!is.finite(max_paginas) || !url_publica(u) || !robots_ok(u)) return(list(error = "Dirección no permitida o bloqueada por robots.txt."))
+  pausa <- suppressWarnings(as.numeric(pausa)[1L]); if (!is.finite(pausa)) pausa <- 1; pausa <- max(0, min(10, pausa))
   cola <- sub("#.*$", "", u); vistas <- character(); pag <- list(); h <- host(u)
-  while (length(cola) && length(vistas) < max) { a <- cola[1]; cola <- cola[-1]; if (a %in% vistas || !robots_ok(a)) next; vistas <- c(vistas, a); x <- descargar(a); Sys.sleep(pausa)
+  while (length(cola) && length(vistas) < max_paginas) { a <- cola[1]; cola <- cola[-1]; if (a %in% vistas || !robots_ok(a)) next; vistas <- c(vistas, a); x <- descargar(a); Sys.sleep(pausa)
     if (is.null(x) || x$r$status_code != 200 || !grepl("html", httr::headers(x$r)[["content-type"]] %||% "")) next
     p <- tryCatch(analizar_pagina(httr::content(x$r, "text", encoding = "UTF-8"), x$url, x$ms), error = function(e) NULL); if (is.null(p)) next
     p$enlaces <- unique(sub("#.*$", "", p$enlaces[host(p$enlaces) == h])); pag[[a]] <- p; cola <- c(cola, setdiff(p$enlaces, c(vistas, cola))) }
