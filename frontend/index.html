@@ -4,9 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0e0b0b">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2716%27 fill=%27%23e9e1d9%27/%3E%3Cpath d=%27M11 20l3-8M16 22l3-12M21 20l-2-7%27 stroke=%27%23171313%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
   <meta name="description" content="La Pala reúne convocatorias, becas, compras públicas, fondos, precios y normativa de Bolivia en un solo lugar.">
   <title>La Pala · oportunidades de Bolivia</title>
-  <link rel="preload" as="image" href="/assets/bienvenidos-himalaya.jpeg" fetchpriority="high">
+  <link rel="preload" as="image" type="image/jpeg" href="/assets/bienvenidos-himalaya.jpeg" fetchpriority="high">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/analitica.css">
 </head>
@@ -52,7 +54,7 @@
           <label class="sr-only" for="consulta-superior">Buscar en todas las oportunidades</label>
           <span class="lupa" aria-hidden="true"></span>
           <input id="consulta-superior" name="q" type="search" maxlength="300" placeholder="Buscar becas, convocatorias, normas…" autocomplete="off">
-          <kbd>Intro</kbd>
+          <kbd aria-hidden="true">Intro</kbd>
         </form>
         <button id="abrir-recoleccion" class="boton-mineria" type="button">Iniciar minería web</button>
         <div class="estado-servicio"><span class="punto-estado" aria-hidden="true"></span><span id="estado-texto" role="status">Consultando fuentes</span></div>
@@ -77,6 +79,8 @@
           </div>
           <img class="imagen-identidad" src="/assets/bienvenidos-himalaya.jpeg" alt="Paisaje del Himalaya que acompaña a La Pala" width="388" height="218" fetchpriority="high">
         </section>
+
+        <noscript><section class="franja-resumen"><p>La Pala necesita JavaScript para consultar el catálogo. Actívalo en tu navegador y vuelve a cargar la página.</p></section></noscript>
 
         <section class="franja-resumen" aria-label="Estado del catálogo">
           <p id="resumen-catalogo">Aún no hay oportunidades recopiladas. Las fuentes públicas configuradas aparecerán aquí cuando el recolector pueda interpretarlas.</p>
@@ -106,6 +110,7 @@
             <button type="button" data-consulta="Licitaciones de SICOES en La Paz">Compras en La Paz</button>
             <button type="button" data-consulta="Fondos para una ONG">Fondos para una ONG</button>
             <button type="button" data-consulta="¿Hay bloqueos?">¿Hay bloqueos?</button>
+            <button type="button" id="mostrar-imagen-chamba">Mostrar imagen de Chamba</button>
           </div>
           <form id="form-chat" class="formulario-chat">
             <label class="sr-only" for="consulta-chat">Escribe tu consulta</label>
@@ -165,13 +170,13 @@
           <section class="noticias-bloqueos" aria-labelledby="titulo-gaceta"><h3 id="titulo-gaceta">Normas y decretos recientes</h3><p id="estado-gaceta">Consultando publicaciones del catálogo.</p><div id="lista-gaceta" class="lista-mapache"></div><a id="enlace-gaceta" href="https://www.gacetaoficialdebolivia.gob.bo/" target="_blank" rel="noopener noreferrer">Abrir Gaceta Oficial ↗</a></section>
           <details class="mapache-detalle"><summary>Estado técnico de fuentes</summary><div id="mapache-fuentes" class="lista-mapache"></div></details>
           <section class="noticias-bloqueos" aria-labelledby="titulo-noticias-bloqueos"><h3 id="titulo-noticias-bloqueos">Reportes recientes</h3><p id="estado-noticias-bloqueos" role="status">El próximo ciclo revisará los feeds de noticias configurados.</p><div id="lista-noticias-bloqueos" class="lista-mapache"></div><details><summary>Medios y feeds consultados</summary><div id="fuentes-noticias-bloqueos" class="lista-mapache"></div></details><p class="nota-noticias">Se detectan menciones, no se confirma el estado de una carretera. Verifica cada reporte con ABC y autoridades locales.</p></section>
-          <details class="mapache-detalle"><summary>Abrir MAPACHE completo</summary><iframe title="MAPACHE · análisis público de Bolivia" src="mapache/index.html" loading="lazy"></iframe></details>
+          <details class="mapache-detalle"><summary>Abrir MAPACHE completo</summary><iframe title="MAPACHE · análisis público de Bolivia" src="/mapache/index.html" loading="lazy"></iframe></details>
         </section>
 
-        <aside class="aviso-seguridad">
+        <div class="aviso-seguridad" role="note">
           <strong>Verifica antes de postular.</strong>
           <span>La Pala reúne información pública. Las fechas, requisitos y condiciones oficiales son los del documento enlazado; nunca entregues dinero ni claves para acceder a una convocatoria.</span>
-        </aside>
+        </div>
 
         <footer class="pie-pagina">
           <span>La Pala · oportunidades de Bolivia</span>
@@ -196,7 +201,7 @@
     </div>
     <form id="form-recoleccion-manual" class="formulario-recoleccion">
       <label for="clave-recoleccion">Clave administrativa MAPACHE</label>
-      <input id="clave-recoleccion" name="clave" type="password" autocomplete="off" maxlength="128" required>
+      <input id="clave-recoleccion" name="clave" type="password" autocomplete="off" spellcheck="false" maxlength="128" required>
       <p class="ayuda-clave">La clave se valida en el servidor y no se muestra ni guarda en la página.</p>
       <button id="iniciar-recoleccion" type="submit">Iniciar revisión completa</button>
       <div id="progreso-recoleccion" class="progreso-recoleccion" role="status" aria-live="polite" hidden>
