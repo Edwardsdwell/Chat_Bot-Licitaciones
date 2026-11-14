@@ -9,8 +9,10 @@ const estado = {
   fuentes: [],
   precios: [],
   ocupado: false,
-  imagenVaciaMostrada: false,
   secuenciaConsulta: 0,
+  turnosChat: [],
+  ultimosIdsChat: [],
+  seleccionChat: "",
 };
 
 const etiquetasCategoria = {
@@ -119,6 +121,22 @@ function bloquearControlesConsulta(bloqueados) {
   });
 }
 
+function contextoChat() {
+  return JSON.stringify({ turnos: estado.turnosChat.slice(-5), ultimos_ids: estado.ultimosIdsChat.slice(0, 6), seleccion: estado.seleccionChat });
+}
+
+function registrarTurnoChat(consulta, respuesta) {
+  const ids = (respuesta?.oportunidades || []).map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
+  estado.turnosChat.push({ consulta, ids, categoria: String(respuesta?.categoria || "") });
+  estado.turnosChat = estado.turnosChat.slice(-5);
+  if (ids.length) estado.ultimosIdsChat = ids;
+  if (respuesta?.detalle_solicitado && ids.length === 1) estado.seleccionChat = ids[0];
+}
+
+function urlChat(consulta, contexto = contextoChat()) {
+  return `/api/chat?q=${encodeURIComponent(consulta)}&limit=6&contexto=${encodeURIComponent(contexto)}`;
+}
+
 async function solicitarRecoleccion(clave) {
   const respuesta = await fetch(`${apiBase}/api/admin/collect`, {
     method: "POST",
@@ -141,7 +159,7 @@ async function esperarRecoleccion(solicitudId, informarEstado) {
       fallosConexion += 1;
       if (fallosConexion >= 5) throw new Error("No pude confirmar el estado de la actualización.");
       informarEstado("La revisión sigue en curso; actualizaré el estado en cuanto vuelva la conexión.", {});
-      await new Promise((resolver) => window.setTimeout(resolver, 3000));
+      await new Promise((resolver) => window.setTimeout(resolver, 5000));
       continue;
     }
     if (datos.solicitud_id === solicitudId && datos.estado === "completada") {
@@ -152,7 +170,7 @@ async function esperarRecoleccion(solicitudId, informarEstado) {
       throw new Error(datos.mensaje || "La recolección terminó con un error.");
     }
     if (datos.solicitud_id === solicitudId && datos.mensaje) informarEstado(datos.mensaje, datos.resumen || {});
-    await new Promise((resolver) => window.setTimeout(resolver, 3000));
+    await new Promise((resolver) => window.setTimeout(resolver, 5000));
   }
   throw new Error("La recolección sigue en curso. Revisa el registro de actividad para ver su avance.");
 }
@@ -234,35 +252,86 @@ function mostrarOportunidades(oportunidades, titulo = "Cierres próximos", detal
 }
 
 function presentarDetallesRespuesta(globo, respuesta) {
-  globo.querySelectorAll(".conteo-resultados-chat, .resultados-chat, .fuentes-chat, .estado-exploracion-chat").forEach((elemento) => elemento.remove());
+  globo.querySelectorAll(".conteo-resultados-chat, .resultados-chat, .fuentes-chat, .estado-exploracion-chat, .detalle-extraido-chat").forEach((elemento) => elemento.remove());
   if (respuesta?.oportunidades?.length) {
     const conteo = document.createElement("p");
     conteo.className = "texto-secundario conteo-resultados-chat";
-    conteo.textContent = `Se muestran ${respuesta.oportunidades.length} resultados. Confirma fechas y condiciones en cada fuente.`;
+    conteo.textContent = `Encontré ${respuesta.total || respuesta.oportunidades.length}. Estas son las coincidencias más cercanas a tu pregunta:`;
     globo.append(conteo);
-    if (window.matchMedia("(max-width: 620px)").matches) {
-      const resultadosChat = document.createElement("div");
-      resultadosChat.className = "resultados-chat";
-      respuesta.oportunidades.slice(0, 3).forEach((oportunidad) => {
-        const tarjeta = document.createElement("article");
-        tarjeta.className = "resultado-chat";
+    const resultadosChat = document.createElement("div");
+    resultadosChat.className = "resultados-chat";
+    respuesta.oportunidades.slice(0, 3).forEach((oportunidad, indice) => {
+      const tarjeta = document.createElement("article");
+      tarjeta.className = "resultado-chat";
+      const titulo = document.createElement("strong");
+      titulo.textContent = `${indice + 1}. ${oportunidad.titulo || "Publicación sin título"}`;
+      tarjeta.append(titulo);
+      const entidad = document.createElement("p");
+      entidad.textContent = [oportunidad.entidad || oportunidad.fuente_nombre, oportunidad.departamento, oportunidad.fecha_limite ? textoFechaCierre(oportunidad.fecha_limite) : "Fecha límite no indicada"].filter(Boolean).join(" · ");
+      tarjeta.append(entidad);
+      const confiable = oportunidad.confianza_extraccion !== "requiere_revision";
+      const resumen = String(oportunidad.descripcion || "").replace(/\s+/g, " ").trim();
+      if (confiable && resumen.length > 35) {
+        const extracto = document.createElement("p");
+        extracto.className = "extracto-resultado-chat";
+        extracto.textContent = resumen.length > 230 ? `${resumen.slice(0, 227).trimEnd()}…` : resumen;
+        tarjeta.append(extracto);
+      }
+      const acciones = document.createElement("div");
+      acciones.className = "acciones-resultado-chat";
+      const url = urlSegura(oportunidad.url);
+      if (url) {
         const enlace = document.createElement("a");
-        const url = urlSegura(oportunidad.url);
-        enlace.textContent = oportunidad.titulo || "Publicación sin título";
-        if (url) {
-          enlace.href = url;
-          enlace.target = "_blank";
-          enlace.rel = "noopener noreferrer";
-        }
-        tarjeta.append(enlace);
-        const detalle = document.createElement("p");
-        const partes = [oportunidad.entidad || oportunidad.fuente_nombre, oportunidad.fecha_limite ? textoFechaCierre(oportunidad.fecha_limite) : "Fecha límite no indicada"];
-        detalle.textContent = partes.filter(Boolean).join(" · ");
-        tarjeta.append(detalle);
-        resultadosChat.append(tarjeta);
+        enlace.href = url;
+        enlace.target = "_blank";
+        enlace.rel = "noopener noreferrer";
+        enlace.textContent = "Abrir ficha exacta ↗";
+        acciones.append(enlace);
+      }
+      if (oportunidad.id) {
+        const boton = document.createElement("button");
+        boton.type = "button";
+        boton.className = "boton-texto boton-detalle-chat";
+        boton.dataset.verDetalles = oportunidad.id;
+        boton.textContent = "Consultar requisitos y detalles";
+        acciones.append(boton);
+      }
+      tarjeta.append(acciones);
+      resultadosChat.append(tarjeta);
+    });
+    globo.append(resultadosChat);
+  }
+
+  if (respuesta?.detalle) {
+    const detalle = respuesta.detalle;
+    const panel = document.createElement("section");
+    panel.className = "detalle-extraido-chat";
+    const encabezado = document.createElement("strong");
+    encabezado.textContent = detalle.estado === "ok" ? "Información leída de la ficha" : "Ficha oficial";
+    panel.append(encabezado);
+    if (detalle.estado === "ok") {
+      const campos = detalle.campos || {};
+      const etiquetas = { requisitos: "Requisitos", ubicacion: "Ubicación o modalidad", postulacion: "Postulación y contacto", remuneracion: "Remuneración" };
+      Object.entries(etiquetas).forEach(([clave, etiqueta]) => {
+        (campos[clave] || []).slice(0, 2).forEach((valor) => {
+          const parrafo = document.createElement("p");
+          parrafo.textContent = `${etiqueta}: ${valor}`;
+          panel.append(parrafo);
+        });
       });
-      globo.append(resultadosChat);
+      if (detalle.fecha_limite) {
+        const fecha = document.createElement("p");
+        fecha.textContent = `Fecha límite en la ficha: ${fechaLocal(detalle.fecha_limite)}`;
+        panel.append(fecha);
+      }
     }
+    const enlace = document.createElement("a");
+    enlace.href = urlSegura(detalle.url || respuesta.oportunidades?.[0]?.url) || "#";
+    enlace.target = "_blank";
+    enlace.rel = "noopener noreferrer";
+    enlace.textContent = "Ver publicación oficial ↗";
+    panel.append(enlace);
+    globo.append(panel);
   }
 
   if (respuesta?.fuentes_recomendadas?.length) {
@@ -285,7 +354,7 @@ function presentarDetallesRespuesta(globo, respuesta) {
       }
       fuentes.append(enlace);
       const detalle = document.createElement("small");
-      detalle.textContent = fuente.habilitada ? "Incluida en la exploración automática" : "Referencia pública; consulta directa";
+      detalle.textContent = fuente.habilitada ? "Portal habilitado · ficha bajo consulta" : "Fuente de referencia pública";
       fuentes.append(detalle);
     });
     globo.append(fuentes);
@@ -310,28 +379,31 @@ function agregarMensaje(texto, tipo = "asistente", respuesta = null) {
 
   if (respuesta) presentarDetallesRespuesta(globo, respuesta);
 
-  if (respuesta && Number(respuesta.total) === 0 && respuesta.categoria !== "precios" && !respuesta.vista && !respuesta.conversacional && !estado.imagenVaciaMostrada) {
-    const imagen = document.createElement("img");
-    imagen.className = "imagen-respuesta-vacia";
-    imagen.src = "/assets/me-da-una-chamba.jpeg";
-    imagen.alt = "Ilustración: me da una chamba con todo, por favor.";
-    imagen.loading = "lazy";
-    imagen.decoding = "async";
-    globo.append(imagen);
-    estado.imagenVaciaMostrada = true;
-  }
-
   fila.append(globo);
   buscarElemento("#mensajes").append(fila);
+  while (buscarElemento("#mensajes").children.length > 60) buscarElemento("#mensajes").firstElementChild.remove();
   buscarElemento("#mensajes").scrollTop = buscarElemento("#mensajes").scrollHeight;
   return fila;
 }
 
-async function seguirExploracion(identificador, consulta, filaRespuesta) {
+function mostrarImagenChamba() {
+  const fila = agregarMensaje("Aquí está la imagen de Chamba que pediste.");
+  const imagen = document.createElement("img");
+  imagen.className = "imagen-respuesta-vacia";
+  imagen.src = "/assets/me-da-una-chamba.jpeg";
+  imagen.alt = "Ilustración de Chamba";
+  imagen.loading = "lazy";
+  imagen.decoding = "async";
+  fila.querySelector(".globo").append(imagen);
+}
+
+async function seguirExploracion(identificador, consulta, filaRespuesta, contexto) {
   const fin = Date.now() + 30 * 60 * 1000;
+  let ultimaMarca = "";
   while (Date.now() < fin && identificador === estado.secuenciaConsulta) {
-    await new Promise((resolver) => window.setTimeout(resolver, 7000));
+    await new Promise((resolver) => window.setTimeout(resolver, 12000));
     if (identificador !== estado.secuenciaConsulta) return;
+    if (document.hidden) continue;
     let avance;
     try {
       avance = await solicitarJson("/api/collection-status");
@@ -348,14 +420,20 @@ async function seguirExploracion(identificador, consulta, filaRespuesta) {
       cambiarEstado(total ? `Chamebador · ${hechas}/${total} fuentes` : "Chamebador · explorando");
     }
 
+    // Solo repite la consulta pesada al chat si el avance cambió.
+    const marca = `${avance.estado}|${avance.resumen?.fuentes_completadas || 0}`;
+    if (marca === ultimaMarca) continue;
+    ultimaMarca = marca;
+
     try {
-      const datos = await solicitarJson(`/api/chat?q=${encodeURIComponent(consulta)}&limit=6`);
+      const datos = await solicitarJson(urlChat(consulta, contexto));
       if (identificador !== estado.secuenciaConsulta) return;
       const texto = filaRespuesta.querySelector(".globo > p");
       if (texto) texto.textContent = datos.respuesta || texto.textContent;
       presentarDetallesRespuesta(filaRespuesta.querySelector(".globo"), datos);
       if (Array.isArray(datos.oportunidades)) {
         estado.oportunidades = datos.oportunidades;
+        estado.ultimosIdsChat = datos.oportunidades.map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
         const titulo = datos.alternativa_reciente === "empleos" ? "Empleos más recientes" : "Resultados de tu consulta";
         mostrarOportunidades(datos.oportunidades, titulo, "Hallazgos parciales de la exploración; se actualizan al consultar cada fuente.");
       }
@@ -379,10 +457,16 @@ function normalizar(valor) {
 async function consultarChat(consulta) {
   const texto = consulta.trim();
   if (!texto || estado.ocupado) return;
+  if (/\b(muestra|mostrar|ensena|ver)\b.*\b(imagen|chamba)\b|\b(imagen|chamba)\b.*\b(muestra|mostrar|ensena|ver)\b/i.test(normalizar(texto))) {
+    agregarMensaje(texto, "persona");
+    mostrarImagenChamba();
+    return;
+  }
   if (/^(hay bloqueos|bloqueos en las fuentes|fuentes bloqueadas)[?.! ]*$/i.test(texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¿¡]/g, ""))) { abrirMapache(); return; }
 
   estado.ocupado = true;
   const identificador = ++estado.secuenciaConsulta;
+  const contexto = contextoChat();
   bloquearControlesConsulta(true);
   agregarMensaje(texto, "persona");
   const boton = buscarElemento("#enviar-consulta");
@@ -395,12 +479,13 @@ async function consultarChat(consulta) {
   buscarElemento("#mensajes").append(filaEspera);
 
   try {
-    const datos = await solicitarJson(`/api/chat?q=${encodeURIComponent(texto)}&limit=6`);
+    const datos = await solicitarJson(urlChat(texto, contexto));
     if (datos.fallo) throw new Error("Consulta fallida");
     filaEspera.remove();
     const filaRespuesta = agregarMensaje(datos.respuesta || "La consulta terminó sin una respuesta disponible.", "asistente", datos);
+    registrarTurnoChat(texto, datos);
     if (["en_cola", "en_curso"].includes(datos.exploracion?.estado)) {
-      void seguirExploracion(identificador, texto, filaRespuesta);
+      void seguirExploracion(identificador, texto, filaRespuesta, contexto);
     }
     if (datos.vista) window.abrirAnalitica?.(datos.trabajo || datos.analisis_sitio);
     else if (Array.isArray(datos.oportunidades)) {
@@ -670,6 +755,18 @@ document.querySelectorAll("[data-consulta]").forEach((boton) => {
   boton.addEventListener("click", () => consultarChat(boton.dataset.consulta));
 });
 
+buscarElemento("#mostrar-imagen-chamba")?.addEventListener("click", () => {
+  agregarMensaje("Muéstrame la imagen de Chamba", "persona");
+  mostrarImagenChamba();
+});
+
+document.addEventListener("click", (evento) => {
+  const boton = evento.target.closest("[data-ver-detalles]");
+  if (!boton) return;
+  estado.seleccionChat = boton.dataset.verDetalles;
+  void consultarChat("Dame los requisitos y detalles de esta publicación");
+});
+
 async function abrirMapache() {
   window.cerrarAnalitica?.();
   window.marcarVistaPrincipal?.("mapache");
@@ -734,6 +831,10 @@ document.querySelectorAll("[data-categoria]").forEach((boton) => {
 });
 
 buscarElemento("#limpiar-chat").addEventListener("click", () => {
+  estado.turnosChat = [];
+  estado.ultimosIdsChat = [];
+  estado.seleccionChat = "";
+  estado.secuenciaConsulta += 1;
   buscarElemento("#mensajes").replaceChildren();
   agregarMensaje("Bienvenida a La Pala. Puedo ayudarte a encontrar oportunidades y revisar sus fechas límite.");
   mostrarOportunidades(estado.oportunidades, "Cierres próximos", "Oportunidades abiertas ordenadas por fecha límite.");
@@ -842,5 +943,12 @@ Promise.all([cargarPanel(), cargarOportunidades()]).catch((error) => {
   console.warn("Fallo al iniciar el panel:", error);
 });
 
-void actualizarEstadoChamebador();
-window.setInterval(() => { void actualizarEstadoChamebador(); }, 7000);
+let temporizadorChamebador = 0;
+async function vigilarChamebador() {
+  window.clearTimeout(temporizadorChamebador);
+  if (!document.hidden) await actualizarEstadoChamebador();
+  const activo = (buscarElemento("#estado-texto")?.textContent || "").startsWith("Chamebador");
+  temporizadorChamebador = window.setTimeout(() => { void vigilarChamebador(); }, activo ? 10000 : 60000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) void vigilarChamebador(); });
+void vigilarChamebador();
