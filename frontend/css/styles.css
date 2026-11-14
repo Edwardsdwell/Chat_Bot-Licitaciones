@@ -513,8 +513,15 @@ body, .marco-app, .barra-lateral, .barra-superior { background: var(--marco); }
 .marca-movil, .menu-movil { display: none; }
 .resultados-chat { display: grid; gap: 6px; margin-top: 8px; }
 .resultado-chat { padding: 8px 9px; border: 1px solid #493a34; border-radius: 5px; background: #171211; }
-.resultado-chat a { color: #f0dfcf; font-size: 12px; font-weight: 600; text-decoration-color: #78665a; }
-.resultado-chat p { margin: 3px 0 0; color: var(--tenue); font-size: 10px; }
+.resultado-chat > strong { display: block; color: var(--tinta); font-size: 13px; }
+.resultado-chat p { margin: 4px 0 0; color: var(--tenue); font-size: 11px; line-height: 1.5; }
+.resultado-chat .extracto-resultado-chat { margin-top: 7px; color: var(--secundario); }
+.acciones-resultado-chat { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 8px; }
+.acciones-resultado-chat a { color: #f0dfcf; font-size: 11px; font-weight: 600; text-decoration-color: #78665a; }
+.boton-detalle-chat { padding: 0; font-size: 11px; }
+.detalle-extraido-chat { display: grid; gap: 5px; margin-top: 9px; padding: 10px; border-left: 2px solid var(--acento); background: #211916; }
+.detalle-extraido-chat p { margin: 0; color: var(--secundario); font-size: 11px; }
+.detalle-extraido-chat a { margin-top: 4px; color: #f0dfcf; font-size: 11px; }
 .fuentes-chat { display: grid; gap: 5px; margin-top: 8px; }
 .fuentes-chat p { margin: 0; }
 .fuentes-chat a { color: #e5c29c; font-size: 12px; }
@@ -609,3 +616,63 @@ dialog::backdrop { background: #000c; }
   .columna-secundaria { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .aviso-seguridad { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ==== Correcciones y mejoras (van al final para prevalecer sobre las reglas anteriores) ==== */
+
+/* 1) Layout: la barra de pestañas es un tercer hijo de .columna-app; sin esto ocupaba la fila "1fr" y empujaba el contenido. */
+.columna-app { grid-template-rows: 56px auto minmax(0, 1fr); }
+@media (max-width: 620px) {
+  .columna-app { grid-template-rows: auto auto minmax(0, 1fr); }
+}
+
+/* 2) Alturas de viewport estables en móviles con barra de direcciones dinámica. */
+@supports (height: 100dvh) {
+  body, .marco-app { min-height: 100dvh; }
+  .barra-lateral { height: 100dvh; }
+}
+
+/* 3) Pestañas principales (Conversar / Laboratorio / MAPACHE). */
+.pestanas-app { display: flex; gap: 6px; padding: 8px 22px; overflow-x: auto; border-bottom: 1px solid var(--regla); background: var(--marco); scrollbar-width: thin; }
+.pestanas-app button { flex: none; min-height: 34px; padding: 0 14px; border: 1px solid #352c2a; border-radius: 999px; background: transparent; color: var(--secundario); font-size: 12px; white-space: nowrap; }
+.pestanas-app button:hover { border-color: #74635a; color: var(--tinta); }
+.pestanas-app button.activa, .pestanas-app button[aria-selected="true"] { border-color: #f1ece6; background: #f1ece6; color: #171313; font-weight: 600; }
+@media (max-width: 620px) { .pestanas-app { padding: 8px 12px; } }
+
+/* 4) Panel MAPACHE: estilos base (si analitica.css ya los define, ese archivo prevalece al cargarse después). */
+.panel-mapache { display: grid; gap: 18px; margin-top: 18px; padding: 18px; border: 1px solid var(--borde); border-radius: var(--radio-hoja); background: var(--superficie-suave); }
+.panel-mapache[hidden] { display: none; }
+.cab-mapache { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.cab-mapache h2 { margin: 0; font-size: 20px; }
+.cab-mapache p { margin: 4px 0 0; color: var(--secundario); font-size: 12px; }
+.resumen-mapache { padding: 10px 12px; border-left: 3px solid var(--alerta); background: var(--fondo-alerta); color: var(--tinta); font-size: 13px; }
+.noticias-bloqueos h3 { margin: 0 0 4px; font-size: 14px; }
+.noticias-bloqueos p, .nota-noticias { margin: 0 0 8px; color: var(--secundario); font-size: 12px; }
+.lista-mapache { display: grid; }
+.fila-mapache, .noticia-bloqueo { display: grid; gap: 3px; padding: 8px 0; border-top: 1px solid var(--regla); }
+.fila-mapache a, .noticia-bloqueo a { color: #e5d6c9; font-size: 12px; overflow-wrap: anywhere; }
+.fila-mapache small, .noticia-bloqueo small { color: var(--tenue); font-size: 11px; }
+.fila-mapache span, .noticia-bloqueo span { color: var(--secundario); font-size: 12px; }
+.mapache-detalle summary { cursor: pointer; color: var(--acento); font-size: 12px; }
+.mapache-detalle iframe { display: block; width: 100%; height: min(70vh, 640px); margin-top: 10px; border: 1px solid var(--borde); border-radius: 6px; background: var(--marco); }
+
+/* 5) Navegación lateral: los botones "Analizar" se ven igual que los enlaces. */
+.navegacion button.enlace-nav { width: 100%; cursor: pointer; }
+
+/* 6) Chat: el desplazamiento interno no arrastra la página. */
+.area-chat { overscroll-behavior: contain; }
+.formulario-chat button:disabled, .boton-mineria:disabled { cursor: wait; opacity: .6; }
+
+/* 7) Legibilidad: nada por debajo de 11 px y botones táctiles más cómodos. */
+.aviso-chat, .pie-pagina, .oportunidad-datos, .marca-categoria, .fila-precio small, .fila-precio a,
+.fila-fuente span, .fila-fuente small, .fuentes-chat small, .estado-chat-worker { font-size: 11px; }
+@media (max-width: 620px) {
+  .consultas-sugeridas button { min-height: 34px; font-size: 11px; }
+  .boton-texto { min-height: 32px; }
+  .estado-chat-worker { font-size: 11px; }
+}
+
+/* 8) Foco visible también sobre los controles de fondo claro. */
+.formulario-chat button:focus-visible, .boton-mineria:focus-visible, .pestanas-app button:focus-visible { outline: 2px solid #f1ece6; outline-offset: 2px; }
+
+/* 9) Respeta la preferencia de menos movimiento en la barra de progreso. */
+@media (prefers-reduced-motion: reduce) { .barra-progreso-recoleccion::after { animation: none; display: none; } }
