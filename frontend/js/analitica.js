@@ -1,5 +1,4 @@
 "use strict";
-// Panel analítico: estadísticas, comparativas, grafo con PageRank, fraude y SEO.
 (() => {
   const $ = (s, r = document) => r.querySelector(s), NS = "http://www.w3.org/2000/svg";
   const crear = (ns, t, a = {}, ...k) => { const e = ns ? document.createElementNS(NS, t) : document.createElement(t); for (const [n, v] of Object.entries(a)) n === "class" ? e.setAttribute("class", v) : e.setAttribute(n, v); e.append(...k.flat().filter((x) => x != null && x !== false)); return e; };
@@ -126,7 +125,7 @@
       try {
         const d = await api("/api/sources"), extra = lista(d.fuentes).filter((x) => seguro(x.url) && !top.some((t) => new URL(t.url).hostname === new URL(x.url).hostname));
         top = [...top, ...extra.slice(0, 7 - top.length).map((x) => ({ sitio: x.nombre, url: x.url, pagerank: 0, oficial: true }))];
-      } catch { /* El selector conserva los sitios que sí entregó el catálogo. */ }
+      } catch {}
     }
     seo.sitios.replaceChildren(...top.map((x) => { const o = h("option", { value: seguro(x.url) }, `${x.sitio} · PageRank ${num(x.pagerank, 4)}`); o.selected = true; return o; }));
     if (!top.length) seo.sitios.replaceChildren(h("option", { value: "" }, "No hay enlaces HTTPS en el catálogo"));

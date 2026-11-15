@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0e0b0b">
-  <meta name="color-scheme" content="dark">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%2716%27 fill=%27%23e9e1d9%27/%3E%3Cpath d=%27M11 20l3-8M16 22l3-12M21 20l-2-7%27 stroke=%27%23171313%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#efeee8">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23e5ece5%27/%3E%3Cpath d=%27M20 5L13 21%27 stroke=%27%232d6344%27 stroke-width=%272.6%27 stroke-linecap=%27round%27/%3E%3Cpath d=%27M13 19L7 27L18 26L20 20Z%27 fill=%27%23b63d32%27 stroke=%27%232d6344%27 stroke-width=%271%27/%3E%3Cpath d=%27M9 25.5L17.5 24.5%27 stroke=%27%23b18a20%27 stroke-width=%271.4%27/%3E%3C/svg%3E">
   <meta name="description" content="La Pala reúne convocatorias, becas, compras públicas, fondos, precios y normativa de Bolivia en un solo lugar.">
   <title>La Pala · oportunidades de Bolivia</title>
-  <link rel="preload" as="image" type="image/jpeg" href="/assets/bienvenidos-himalaya.jpeg" fetchpriority="high">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="stylesheet" href="/css/analitica.css">
 </head>
@@ -17,12 +16,12 @@
   <div class="marco-app">
     <aside class="barra-lateral" aria-label="Navegación principal">
       <a class="marca" href="#inicio" aria-label="La Pala, inicio">
-        <span class="marca-simbolo" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span class="marca-texto"><strong>la pala</strong><small>Radar de Bolivia</small></span>
+        <span class="marca-simbolo" aria-hidden="true"><svg viewBox="0 0 32 32"><path class="mango" d="M20 5 13 21"/><path class="pala" d="m13 19-6 8 11-1 2-6z"/><path class="filo" d="m9 25.5 8.5-1"/></svg></span>
+        <span class="marca-texto"><strong>la pala</strong><small>Oportunidades públicas</small></span>
       </a>
 
       <nav class="navegacion" id="navegacion" aria-label="Áreas de oportunidades">
-        <p class="titulo-navegacion">Explorar</p>
+        <p class="titulo-navegacion">Buscar</p>
         <a class="enlace-nav activo" href="#lista-oportunidades" data-categoria="todas" aria-current="page">Vista general</a>
         <a class="enlace-nav" href="#lista-oportunidades" data-categoria="convocatorias">Convocatorias públicas</a>
         <a class="enlace-nav" href="#lista-oportunidades" data-categoria="empleo_publico">Empleo del Estado</a>
@@ -32,13 +31,13 @@
         <a class="enlace-nav" href="#lista-oportunidades" data-categoria="fondos">Fondos y financiamiento</a>
         <a class="enlace-nav" href="#lista-oportunidades" data-categoria="precios">Precios locales</a>
         <a class="enlace-nav" href="#lista-oportunidades" data-categoria="normativa">Normativa y Gaceta</a>
-        <p class="titulo-navegacion">Analizar</p>
-        <button class="enlace-nav" id="ir-analitica" type="button">Analítica web</button>
-        <button class="enlace-nav" id="ir-mapache" type="button">MAPACHE · Bloqueos</button>
+        <p class="titulo-navegacion">Herramientas</p>
+        <button class="enlace-nav" id="ir-analitica" type="button">Analítica y SEO</button>
+        <button class="enlace-nav" id="ir-mapache" type="button">MAPACHE · Riesgos</button>
       </nav>
 
       <div class="nota-lateral">
-        <p>La información conserva su fuente original y su fecha de revisión.</p>
+        <p>Cada aviso conserva el enlace y la fecha de su fuente.</p>
         <button id="boton-fuentes" class="boton-texto" type="button">Ver fuentes registradas</button>
       </div>
       <div class="pie-lateral">Información pública · Bolivia</div>
@@ -47,17 +46,11 @@
     <div class="columna-app">
       <header class="barra-superior">
         <a class="marca-movil" href="#contenido" aria-label="La Pala, chat principal">
-          <span class="marca-simbolo" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="marca-simbolo" aria-hidden="true"><svg viewBox="0 0 32 32"><path class="mango" d="M20 5 13 21"/><path class="pala" d="m13 19-6 8 11-1 2-6z"/><path class="filo" d="m9 25.5 8.5-1"/></svg></span>
           <strong>la pala</strong>
         </a>
-        <form id="form-busqueda-superior" class="busqueda-superior" role="search">
-          <label class="sr-only" for="consulta-superior">Buscar en todas las oportunidades</label>
-          <span class="lupa" aria-hidden="true"></span>
-          <input id="consulta-superior" name="q" type="search" maxlength="300" placeholder="Buscar becas, convocatorias, normas…" autocomplete="off">
-          <kbd aria-hidden="true">Intro</kbd>
-        </form>
-        <button id="abrir-recoleccion" class="boton-mineria" type="button">Iniciar minería web</button>
-        <div class="estado-servicio"><span class="punto-estado" aria-hidden="true"></span><span id="estado-texto" role="status">Consultando fuentes</span></div>
+        <button id="abrir-recoleccion" class="boton-mineria" type="button">Actualizar fuentes</button>
+        <div class="estado-servicio"><span class="punto-estado" aria-hidden="true"></span><span id="estado-texto" role="status">Cargando avisos</span></div>
         <details id="menu-movil" class="menu-movil">
           <summary aria-label="Abrir menú con categorías, resultados y estadísticas">Menú</summary>
           <div id="contenido-menu-movil" class="contenido-menu-movil"></div>
@@ -66,18 +59,17 @@
 
       <nav class="pestanas-app" role="tablist" aria-label="Vistas principales">
         <button type="button" role="tab" aria-selected="true" aria-current="page" aria-controls="contenido" data-vista-app="chat">Conversar</button>
-        <button type="button" role="tab" aria-selected="false" aria-controls="analitica" data-vista-app="analitica">Laboratorio</button>
-        <button type="button" role="tab" aria-selected="false" aria-controls="mapache-integrado" data-vista-app="mapache">MAPACHE · ¿Hay bloqueos?</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="analitica" data-vista-app="analitica">Analítica</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="mapache-integrado" data-vista-app="mapache">MAPACHE · Riesgos</button>
       </nav>
 
       <main class="hoja" id="contenido">
         <section class="encabezado-pagina" id="inicio" aria-labelledby="titulo-principal">
           <div>
-            <p class="saludo">Radar público · Bolivia</p>
-            <h1 id="titulo-principal">Tu asistente de oportunidades públicas</h1>
-            <p class="bajada">Pregunta por empleos, becas, convocatorias, compras y normativa. La Pala presenta hallazgos con enlaces a sus fuentes.</p>
+            <p class="saludo">Bolivia · trabajo, becas y compras públicas</p>
+            <h1 id="titulo-principal">Encuentra el aviso que necesitas</h1>
+            <p class="bajada">Dime qué buscas y dónde. La Pala revisa el catálogo y te lleva a la publicación original.</p>
           </div>
-          <img class="imagen-identidad" src="/assets/bienvenidos-himalaya.jpeg" alt="Paisaje del Himalaya que acompaña a La Pala" width="388" height="218" fetchpriority="high">
         </section>
 
         <noscript><section class="franja-resumen"><p>La Pala necesita JavaScript para consultar el catálogo. Actívalo en tu navegador y vuelve a cargar la página.</p></section></noscript>
@@ -90,32 +82,29 @@
         <section class="bloque-asistente" aria-labelledby="titulo-asistente">
           <div class="cabecera-bloque">
             <div>
-              <h2 id="titulo-asistente">Pregunta a La Pala</h2>
-              <p>Por ejemplo: «¿Qué becas puedo pedir antes de fin de mes?»</p>
+              <h2 id="titulo-asistente">Conversa con La Pala</h2>
+              <p>Ejemplo: «Becas en La Paz que cierren este mes»</p>
             </div>
-            <button id="limpiar-chat" class="boton-texto" type="button">Nueva consulta</button>
+            <button id="limpiar-chat" class="boton-texto" type="button">Nuevo chat</button>
           </div>
-          <p id="estado-chat-worker" class="estado-chat-worker" role="status">El catálogo se actualiza a diario; mientras exploro, verás los hallazgos conforme aparezcan.</p>
+          <p id="estado-chat-worker" class="estado-chat-worker" role="status">Lista para buscar avisos en fuentes públicas.</p>
           <div class="area-chat" id="mensajes" aria-live="polite" aria-relevant="additions text">
             <div class="fila-mensaje mensaje-asistente">
               <div class="globo">
-                <p>Bienvenida a La Pala. Puedo ayudarte a encontrar oportunidades y revisar sus fechas límite.</p>
-                <p class="texto-secundario">No invento requisitos ni plazos: consulta siempre el documento de la fuente.</p>
+                <p>Hola, soy La Pala. Cuéntame qué buscas y en qué departamento; te mostraré avisos con su enlace de origen.</p>
+                <p class="texto-secundario">Fechas y requisitos se confirman en la publicación original.</p>
               </div>
             </div>
           </div>
           <div class="consultas-sugeridas" aria-label="Consultas sugeridas">
-            <button type="button" data-consulta="Becas que cierren antes de fin de mes">Becas antes de fin de mes</button>
-            <button type="button" data-consulta="Convocatorias públicas abiertas">Convocatorias abiertas</button>
-            <button type="button" data-consulta="Licitaciones de SICOES en La Paz">Compras en La Paz</button>
-            <button type="button" data-consulta="Fondos para una ONG">Fondos para una ONG</button>
-            <button type="button" data-consulta="¿Hay bloqueos?">¿Hay bloqueos?</button>
-            <button type="button" id="mostrar-imagen-chamba">Mostrar imagen de Chamba</button>
+            <button type="button" data-consulta="Becas que cierren antes de fin de mes">Becas próximas a cerrar</button>
+            <button type="button" data-consulta="Trabajo público en Cochabamba">Empleo en Cochabamba</button>
+            <button type="button" data-consulta="Licitaciones de SICOES en La Paz">Compras públicas en La Paz</button>
           </div>
           <form id="form-chat" class="formulario-chat">
             <label class="sr-only" for="consulta-chat">Escribe tu consulta</label>
-            <input id="consulta-chat" name="q" type="search" maxlength="300" placeholder="¿Qué oportunidad estás buscando?" autocomplete="off" required>
-            <button id="enviar-consulta" type="submit">Consultar</button>
+            <input id="consulta-chat" name="q" type="search" maxlength="300" placeholder="Ej. becas en Santa Cruz que cierren este mes" autocomplete="off" required>
+            <button id="enviar-consulta" type="submit">Enviar</button>
           </form>
           <p class="aviso-chat">El chat no guarda tus consultas ni realiza postulaciones.</p>
         </section>
@@ -163,7 +152,7 @@
           </aside>
         </div>
 
-        <section id="analitica" class="analitica" aria-label="Analítica web" hidden></section>
+        <section id="analitica" class="analitica" aria-label="Analítica y SEO" hidden></section>
         <section id="mapache-integrado" class="panel-mapache" aria-label="MAPACHE: estado de fuentes" hidden>
           <header class="cab-mapache"><div><p class="saludo">MAPACHE · noticias y normativa</p><h2>¿Hay bloqueos?</h2><p>Reportes de prensa, novedades de la Gaceta Oficial y estado del rastreo.</p></div><button id="actualizar-mapache" class="boton-texto" type="button">Actualizar</button></header>
           <div id="mapache-resumen" class="resumen-mapache" role="status">Consultando fuentes…</div>
@@ -196,7 +185,7 @@
 
   <dialog id="dialogo-recoleccion" aria-labelledby="titulo-dialogo-recoleccion">
     <div class="cabecera-dialogo">
-      <div><h2 id="titulo-dialogo-recoleccion">Iniciar minería web</h2><p>Se consulta cada fuente y el catálogo solo muestra publicaciones verificadas hoy. La actualización automática se repite diariamente mientras La Pala esté abierta.</p></div>
+      <div><h2 id="titulo-dialogo-recoleccion">Actualizar oportunidades</h2><p>La Pala consulta las fuentes habilitadas y añade al catálogo los avisos que puede verificar. El chat sigue disponible mientras termina.</p></div>
       <button id="cerrar-recoleccion" class="boton-texto" type="button">Cerrar</button>
     </div>
     <form id="form-recoleccion-manual" class="formulario-recoleccion">

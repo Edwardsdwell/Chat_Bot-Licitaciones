@@ -1,9 +1,8 @@
 "use strict";
 
-// La Pala presenta información pública y enlaza cada resultado con su origen.
-const apiBase = String(window.LA_PALA_API || "").replace(/\/+$/, "");
+const urlApiLaPala = String(window.LA_PALA_API || "").replace(/\/+$/, "");
 const buscarElemento = (selector, raiz = document) => raiz.querySelector(selector);
-const estado = {
+const estadoLaPala = {
   categoria: "todas",
   oportunidades: [],
   fuentes: [],
@@ -15,7 +14,7 @@ const estado = {
   seleccionChat: "",
 };
 
-const etiquetasCategoria = {
+const categoriasLaPala = {
   convocatorias: "Convocatoria pública",
   empleo_publico: "Empleo del Estado",
   contrataciones: "Compra pública",
@@ -88,7 +87,7 @@ async function solicitarJson(ruta) {
   const controlador = new AbortController();
   const temporizador = window.setTimeout(() => controlador.abort(), 20000);
   try {
-    const respuesta = await fetch(`${apiBase}${ruta}`, {
+    const respuesta = await fetch(`${urlApiLaPala}${ruta}`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
       signal: controlador.signal,
@@ -111,8 +110,6 @@ function bloquearControlesConsulta(bloqueados) {
   [
     "#consulta-chat",
     "#enviar-consulta",
-    "#consulta-superior",
-    "#form-busqueda-superior button",
     "[data-consulta]",
   ].forEach((selector) => {
     document.querySelectorAll(selector).forEach((control) => {
@@ -122,22 +119,21 @@ function bloquearControlesConsulta(bloqueados) {
 }
 
 function contextoChat() {
-  return JSON.stringify({ turnos: estado.turnosChat.slice(-5), ultimos_ids: estado.ultimosIdsChat.slice(0, 6), seleccion: estado.seleccionChat });
+  return JSON.stringify({ turnos: estadoLaPala.turnosChat.slice(-5), ultimos_ids: estadoLaPala.ultimosIdsChat.slice(0, 6), seleccion: estadoLaPala.seleccionChat });
 }
 
 function registrarTurnoChat(consulta, respuesta) {
   const ids = (respuesta?.oportunidades || []).map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
-  estado.turnosChat.push({ consulta, ids, categoria: String(respuesta?.categoria || "") });
-  estado.turnosChat = estado.turnosChat.slice(-5);
-  if (ids.length) estado.ultimosIdsChat = ids;
-  if (respuesta?.detalle_solicitado && ids.length === 1) estado.seleccionChat = ids[0];
+  estadoLaPala.turnosChat.push({ consulta, ids, categoria: String(respuesta?.categoria || "") });
+  estadoLaPala.turnosChat = estadoLaPala.turnosChat.slice(-5);
+  if (ids.length) estadoLaPala.ultimosIdsChat = ids;
+  if (respuesta?.detalle_solicitado && ids.length === 1) estadoLaPala.seleccionChat = ids[0];
 }
 
 function urlChat(consulta, contexto = contextoChat(), seguimiento = false) {
   return `/api/chat?q=${encodeURIComponent(consulta)}&limit=6&contexto=${encodeURIComponent(contexto)}${seguimiento ? "&seguimiento=1" : ""}`;
 }
 
-// Escribe el texto de una respuesta como párrafos (los saltos de línea simples se conservan por CSS).
 function escribirTexto(globo, texto) {
   globo.querySelectorAll(".texto-respuesta").forEach((p) => p.remove());
   const nodos = String(texto || "").split(/\n{2,}/).map((t) => t.trim()).filter(Boolean).map((t) => {
@@ -150,7 +146,7 @@ function escribirTexto(globo, texto) {
 }
 
 async function solicitarRecoleccion(clave) {
-  const respuesta = await fetch(`${apiBase}/api/admin/collect`, {
+  const respuesta = await fetch(`${urlApiLaPala}/api/admin/collect`, {
     method: "POST",
     headers: { Accept: "application/json", Authorization: `Bearer ${clave}` },
   });
@@ -191,7 +187,7 @@ function renderizarOportunidad(oportunidad) {
   const url = urlSegura(oportunidad.url);
   const imagen = urlSegura(oportunidad.imagen_url);
   const titulo = escaparHtml(oportunidad.titulo || "Título no disponible");
-  const categoria = escaparHtml(etiquetasCategoria[oportunidad.categoria] || "Oportunidad");
+  const categoria = escaparHtml(categoriasLaPala[oportunidad.categoria] || "Oportunidad");
   const departamento = escaparHtml(oportunidad.departamento || "Bolivia");
   const cierre = textoFechaCierre(oportunidad.fecha_limite);
   const publicada = oportunidad.fecha_publicacion
@@ -417,23 +413,12 @@ function agregarMensaje(texto, tipo = "asistente", respuesta = null) {
   return fila;
 }
 
-function mostrarImagenChamba() {
-  const fila = agregarMensaje("Aquí está la imagen de Chamba que pediste.");
-  const imagen = document.createElement("img");
-  imagen.className = "imagen-respuesta-vacia";
-  imagen.src = "/assets/me-da-una-chamba.jpeg";
-  imagen.alt = "Ilustración de Chamba";
-  imagen.loading = "lazy";
-  imagen.decoding = "async";
-  fila.querySelector(".globo").append(imagen);
-}
-
 async function seguirExploracion(identificador, consulta, filaRespuesta, contexto) {
   const fin = Date.now() + 30 * 60 * 1000;
   let ultimaMarca = "";
-  while (Date.now() < fin && identificador === estado.secuenciaConsulta) {
+  while (Date.now() < fin && identificador === estadoLaPala.secuenciaConsulta) {
     await new Promise((resolver) => window.setTimeout(resolver, 12000));
-    if (identificador !== estado.secuenciaConsulta) return;
+    if (identificador !== estadoLaPala.secuenciaConsulta) return;
     if (document.hidden) continue;
     let avance;
     try {
@@ -448,7 +433,7 @@ async function seguirExploracion(identificador, consulta, filaRespuesta, context
       const resumen = avance.resumen || {};
       const hechas = resumen.fuentes_completadas || 0;
       const total = resumen.total_fuentes || 0;
-      cambiarEstado(total ? `Chamebador · ${hechas}/${total} fuentes` : "Chamebador · explorando");
+      cambiarEstado(total ? `Recolección · ${hechas}/${total} fuentes` : "Recolección en curso");
     }
 
     // Solo repite la consulta pesada al chat si el avance cambió.
@@ -458,19 +443,19 @@ async function seguirExploracion(identificador, consulta, filaRespuesta, context
 
     try {
       const datos = await solicitarJson(urlChat(consulta, contexto, true));
-      if (identificador !== estado.secuenciaConsulta) return;
+      if (identificador !== estadoLaPala.secuenciaConsulta) return;
       const globoRespuesta = filaRespuesta.querySelector(".globo");
       // Si la respuesta ya la redactó el agente IA, el refresco automático solo actualiza las tarjetas.
       if (!filaRespuesta.dataset.agente && datos.respuesta) escribirTexto(globoRespuesta, datos.respuesta);
       presentarDetallesRespuesta(globoRespuesta, datos, true);
       if (Array.isArray(datos.oportunidades)) {
-        estado.oportunidades = datos.oportunidades;
-        estado.ultimosIdsChat = datos.oportunidades.map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
+        estadoLaPala.oportunidades = datos.oportunidades;
+        estadoLaPala.ultimosIdsChat = datos.oportunidades.map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
         const titulo = datos.alternativa_reciente === "empleos" ? "Empleos más recientes" : "Resultados de tu consulta";
         mostrarOportunidades(datos.oportunidades, titulo, "Hallazgos parciales de la exploración; se actualizan al consultar cada fuente.");
       }
       if (avance.estado === "completada") {
-        await Promise.all([cargarPanel(), cargarOportunidades(estado.categoria)]);
+        await Promise.all([cargarPanel(), cargarOportunidades(estadoLaPala.categoria)]);
         return;
       }
     } catch {
@@ -488,16 +473,11 @@ function normalizar(valor) {
 
 async function consultarChat(consulta) {
   const texto = consulta.trim();
-  if (!texto || estado.ocupado) return;
-  if (/\b(muestra|mostrar|ensena|ver)\b.*\b(imagen|chamba)\b|\b(imagen|chamba)\b.*\b(muestra|mostrar|ensena|ver)\b/i.test(normalizar(texto))) {
-    agregarMensaje(texto, "persona");
-    mostrarImagenChamba();
-    return;
-  }
+  if (!texto || estadoLaPala.ocupado) return;
   if (/^(hay bloqueos|bloqueos en las fuentes|fuentes bloqueadas)[?.! ]*$/i.test(texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¿¡]/g, ""))) { abrirMapache(); return; }
 
-  estado.ocupado = true;
-  const identificador = ++estado.secuenciaConsulta;
+  estadoLaPala.ocupado = true;
+  const identificador = ++estadoLaPala.secuenciaConsulta;
   const contexto = contextoChat();
   bloquearControlesConsulta(true);
   agregarMensaje(texto, "persona");
@@ -522,7 +502,7 @@ async function consultarChat(consulta) {
     }
     if (datos.vista) window.abrirAnalitica?.(datos.trabajo || datos.analisis_sitio);
     else if (Array.isArray(datos.oportunidades)) {
-      estado.oportunidades = datos.oportunidades;
+      estadoLaPala.oportunidades = datos.oportunidades;
       const titulo = datos.alternativa_reciente === "empleos"
         ? "Empleos más recientes"
         : datos.alternativa_reciente
@@ -538,7 +518,7 @@ async function consultarChat(consulta) {
       mostrarOportunidades(datos.oportunidades, titulo, detalle);
     }
     if (datos.categoria === "precios" && Array.isArray(datos.precios)) {
-      estado.precios = datos.precios;
+      estadoLaPala.precios = datos.precios;
       mostrarPrecios(datos.precios);
     }
     cambiarEstado("Catálogo consultado", "disponible");
@@ -556,7 +536,7 @@ async function consultarChat(consulta) {
     filaError.querySelector(".globo").append(reintentar);
     cambiarEstado("Servicio no disponible", "error");
   } finally {
-    estado.ocupado = false;
+    estadoLaPala.ocupado = false;
     bloquearControlesConsulta(false);
     boton.textContent = "Consultar";
   }
@@ -623,7 +603,7 @@ function renderizarFuentes(fuentes) {
   const crearFila = (fuente) => {
     const enlace = urlSegura(fuente.url);
     const nombre = escaparHtml(fuente.nombre || "Fuente sin nombre");
-    const categoria = escaparHtml(etiquetasCategoria[fuente.categoria] || "Referencia");
+    const categoria = escaparHtml(categoriasLaPala[fuente.categoria] || "Referencia");
     const estadoFuente = escaparHtml(fuente.estado || "Registrada");
     const htmlNombre = enlace
       ? `<a href="${escaparHtml(enlace)}" target="_blank" rel="noopener noreferrer">${nombre}</a>`
@@ -636,7 +616,7 @@ function renderizarFuentes(fuentes) {
 }
 
 function activarCategoria(categoria) {
-  estado.categoria = categoria;
+  estadoLaPala.categoria = categoria;
   document.querySelectorAll("[data-categoria]").forEach((boton) => {
     const activo = boton.dataset.categoria === categoria;
     boton.classList.toggle("activo", activo);
@@ -644,7 +624,7 @@ function activarCategoria(categoria) {
     else boton.removeAttribute("aria-current");
   });
 
-  const etiqueta = categoria === "todas" ? "Cierres próximos" : etiquetasCategoria[categoria] || "Oportunidades";
+  const etiqueta = categoria === "todas" ? "Cierres próximos" : categoriasLaPala[categoria] || "Oportunidades";
   cargarOportunidades(categoria, etiqueta);
 }
 
@@ -653,7 +633,6 @@ function prepararMenuMovil() {
   const menu = buscarElemento("#menu-movil");
   const contenido = buscarElemento("#contenido-menu-movil");
   const selectores = [
-    "#form-busqueda-superior",
     "#abrir-recoleccion",
     ".estado-servicio",
     "#navegacion",
@@ -695,7 +674,7 @@ async function cargarOportunidades(categoria = "todas", titulo = "Cierres próxi
   try {
     const datos = await solicitarJson(`/api/opportunities?limit=6${parametro}`);
     const oportunidades = Array.isArray(datos.oportunidades) ? datos.oportunidades : [];
-    estado.oportunidades = oportunidades;
+    estadoLaPala.oportunidades = oportunidades;
     mostrarOportunidades(oportunidades, titulo, categoria === "todas" ? "Oportunidades abiertas ordenadas por fecha límite." : `Publicaciones registradas en ${titulo.toLocaleLowerCase("es-BO")}.`);
   } catch (error) {
     mostrarOportunidades([], titulo, "No se pudo cargar la lista en este momento.");
@@ -704,26 +683,26 @@ async function cargarOportunidades(categoria = "todas", titulo = "Cierres próxi
   }
 }
 
-async function actualizarEstadoChamebador() {
+async function actualizarEstadoRecoleccion() {
   try {
     const datos = await solicitarJson("/api/collection-status");
     const linea = buscarElemento("#estado-chat-worker");
     const resumen = datos.resumen || {};
     if (datos.estado === "en_cola") {
-      linea.textContent = "El Chamebador ya recibió la consulta y está preparando la exploración.";
-      cambiarEstado("Chamebador en cola");
+      linea.textContent = "La revisión está en cola. Puedes seguir buscando mientras empieza.";
+      cambiarEstado("Revisión en cola");
     } else if (datos.estado === "en_curso") {
       const hechas = resumen.fuentes_completadas || 0;
       const total = resumen.total_fuentes || 0;
       const fuente = resumen.fuente_actual ? ` · ${resumen.fuente_actual}` : "";
       const solicitudes = resumen.solicitudes_http || 0;
-      linea.textContent = `El Chamebador explora ${hechas} de ${total} fuentes · ${solicitudes} solicitudes${fuente}. Los hallazgos aparecen sin esperar el ciclo completo.`;
-      cambiarEstado(`Chamebador · ${hechas}/${total}`);
+      linea.textContent = `Revisando ${hechas} de ${total} fuentes · ${solicitudes} solicitudes${fuente}. Los avisos aparecerán a medida que se publiquen.`;
+      cambiarEstado(`Revisión · ${hechas}/${total}`);
     } else if (datos.estado === "completada") {
       linea.textContent = "Exploración de hoy completada. Las respuestas usan publicaciones verificadas y sus fuentes originales.";
-      if (buscarElemento("#estado-texto").textContent.startsWith("Chamebador")) cambiarEstado("Catálogo actualizado", "disponible");
+      if (buscarElemento("#estado-texto").textContent.startsWith("Revisión")) cambiarEstado("Catálogo actualizado", "disponible");
     } else if (datos.estado === "fallida") {
-      linea.textContent = "La exploración tuvo un problema; aún puedes consultar las fuentes públicas directamente.";
+      linea.textContent = "La revisión tuvo un problema. Aún puedes consultar las fuentes registradas.";
     }
   } catch {
     // El chat conserva su catálogo local mientras la API se recupera.
@@ -752,13 +731,13 @@ async function cargarPanel() {
   }
 
   if (resultados[1].status === "fulfilled") {
-    estado.precios = resultados[1].value.precios || [];
-    mostrarPrecios(estado.precios);
+    estadoLaPala.precios = resultados[1].value.precios || [];
+    mostrarPrecios(estadoLaPala.precios);
   }
 
   if (resultados[2].status === "fulfilled") {
-    estado.fuentes = resultados[2].value.fuentes || [];
-    renderizarFuentes(estado.fuentes);
+    estadoLaPala.fuentes = resultados[2].value.fuentes || [];
+    renderizarFuentes(estadoLaPala.fuentes);
   }
 
   if (resultados.every((resultado) => resultado.status === "rejected")) {
@@ -774,35 +753,20 @@ buscarElemento("#form-chat").addEventListener("submit", (evento) => {
   consultarChat(consulta);
 });
 
-buscarElemento("#form-busqueda-superior").addEventListener("submit", (evento) => {
-  evento.preventDefault();
-  const entrada = buscarElemento("#consulta-superior");
-  buscarElemento("#consulta-chat").value = entrada.value;
-  window.cerrarAnalitica?.();
-  consultarChat(entrada.value);
-  entrada.value = "";
-  buscarElemento("#contenido").scrollIntoView({ behavior: "smooth", block: "start" });
-});
-
 document.querySelectorAll("[data-consulta]").forEach((boton) => {
   boton.addEventListener("click", () => consultarChat(boton.dataset.consulta));
 });
 
-buscarElemento("#mostrar-imagen-chamba")?.addEventListener("click", () => {
-  agregarMensaje("Muéstrame la imagen de Chamba", "persona");
-  mostrarImagenChamba();
-});
-
 document.addEventListener("click", (evento) => {
   const sugerida = evento.target.closest("[data-sugerencia]");
-  if (!sugerida || estado.ocupado) return;
+  if (!sugerida || estadoLaPala.ocupado) return;
   void consultarChat(sugerida.dataset.sugerencia);
 });
 
 document.addEventListener("click", (evento) => {
   const boton = evento.target.closest("[data-ver-detalles]");
   if (!boton) return;
-  estado.seleccionChat = boton.dataset.verDetalles;
+  estadoLaPala.seleccionChat = boton.dataset.verDetalles;
   void consultarChat("Dame los requisitos y detalles de esta publicación");
 });
 
@@ -870,13 +834,13 @@ document.querySelectorAll("[data-categoria]").forEach((boton) => {
 });
 
 buscarElemento("#limpiar-chat").addEventListener("click", () => {
-  estado.turnosChat = [];
-  estado.ultimosIdsChat = [];
-  estado.seleccionChat = "";
-  estado.secuenciaConsulta += 1;
+  estadoLaPala.turnosChat = [];
+  estadoLaPala.ultimosIdsChat = [];
+  estadoLaPala.seleccionChat = "";
+  estadoLaPala.secuenciaConsulta += 1;
   buscarElemento("#mensajes").replaceChildren();
-  agregarMensaje("Bienvenida a La Pala. Puedo ayudarte a encontrar oportunidades y revisar sus fechas límite.");
-  mostrarOportunidades(estado.oportunidades, "Cierres próximos", "Oportunidades abiertas ordenadas por fecha límite.");
+  agregarMensaje("Hola, soy La Pala. Cuéntame qué buscas y en qué departamento; te mostraré avisos con su enlace de origen.");
+  mostrarOportunidades(estadoLaPala.oportunidades, "Cierres próximos", "Oportunidades abiertas ordenadas por fecha límite.");
   buscarElemento("#consulta-chat").focus();
 });
 
@@ -919,7 +883,7 @@ async function prepararDialogoRecoleccion() {
       buscarElemento("#estado-recoleccion-manual").textContent = "La última revisión no pudo completarse. Puedes iniciar una nueva.";
     }
   } catch {
-    // El cuadro sigue disponible para iniciar una nueva solicitud.
+    buscarElemento("#estado-recoleccion-manual").textContent = "No pude consultar el estado de la revisión.";
   }
 }
 
@@ -965,8 +929,8 @@ buscarElemento("#form-recoleccion-manual").addEventListener("submit", async (eve
     const solicitudes = resumen.solicitudes_http || 0;
     const duracion = Math.round(resumen.duracion_segundos || 0);
     estadoAccion.textContent = `Revisión completa: ${resumen.oportunidades_activas || 0} oportunidades vigentes, ${fuentesConHallazgos} fuentes con hallazgos, ${solicitudes} solicitudes en ${duracion} s y ${resumen.observaciones_precios || 0} precios registrados.`;
-    const titulo = estado.categoria === "todas" ? "Cierres próximos" : etiquetasCategoria[estado.categoria] || "Oportunidades";
-    await Promise.all([cargarPanel(), cargarOportunidades(estado.categoria, titulo)]);
+    const titulo = estadoLaPala.categoria === "todas" ? "Cierres próximos" : categoriasLaPala[estadoLaPala.categoria] || "Oportunidades";
+    await Promise.all([cargarPanel(), cargarOportunidades(estadoLaPala.categoria, titulo)]);
   } catch (error) {
     estadoAccion.textContent = "No pude completar la actualización. Inténtalo de nuevo más tarde.";
   } finally {
@@ -982,12 +946,12 @@ Promise.all([cargarPanel(), cargarOportunidades()]).catch((error) => {
   console.warn("Fallo al iniciar el panel:", error);
 });
 
-let temporizadorChamebador = 0;
-async function vigilarChamebador() {
-  window.clearTimeout(temporizadorChamebador);
-  if (!document.hidden) await actualizarEstadoChamebador();
-  const activo = (buscarElemento("#estado-texto")?.textContent || "").startsWith("Chamebador");
-  temporizadorChamebador = window.setTimeout(() => { void vigilarChamebador(); }, activo ? 10000 : 60000);
+let temporizadorRecoleccion = 0;
+async function vigilarRecoleccion() {
+  window.clearTimeout(temporizadorRecoleccion);
+  if (!document.hidden) await actualizarEstadoRecoleccion();
+  const activo = (buscarElemento("#estado-texto")?.textContent || "").startsWith("Revisión");
+  temporizadorRecoleccion = window.setTimeout(() => { void vigilarRecoleccion(); }, activo ? 10000 : 60000);
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden) void vigilarChamebador(); });
-void vigilarChamebador();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) void vigilarRecoleccion(); });
+void vigilarRecoleccion();

@@ -874,7 +874,7 @@ RUTAS <- list(
       antiguedad <- as.numeric(difftime(Sys.time(), file.info(ARCHIVO_RECOLECCION_ENCOLADA)$mtime, units = "mins"))
       if (is.finite(antiguedad) && antiguedad < 5) {
         res$status <- 409L
-        return(list(mensaje = "El Chamebador ya está preparando una exploración."))
+        return(list(mensaje = "La Pala ya está preparando la revisión."))
       }
       unlink(ARCHIVO_RECOLECCION_ENCOLADA, recursive = TRUE)
     }
@@ -916,7 +916,7 @@ RUTAS <- list(
     estado <- leer_json(ARCHIVO_ESTADO_RECOLECCION, list(estado = "sin_registro", mensaje = "Todavía no se ha registrado una recolección."))
     cola_reciente <- marca_reciente(ARCHIVO_RECOLECCION_ENCOLADA, 5, "mins")
     if (cola_reciente && !file.exists(ARCHIVO_BLOQUEO_RECOLECCION)) {
-      return(list(estado = "en_cola", solicitud_id = solicitud_id, mensaje = "El Chamebador está preparando la exploración."))
+      return(list(estado = "en_cola", solicitud_id = solicitud_id, mensaje = "La Pala está preparando la revisión."))
     }
     bloqueo_activo <- marca_reciente(ARCHIVO_BLOQUEO_RECOLECCION, 8, "hours")
     if (bloqueo_activo) {

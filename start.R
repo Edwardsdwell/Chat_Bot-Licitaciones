@@ -130,7 +130,7 @@ iniciar_recoleccion <- function() {
   if (file.exists(archivo_bloqueo_recoleccion) && !bloqueo_activo) unlink(archivo_bloqueo_recoleccion)
   if (file.exists(archivo_recoleccion_encolada) && !cola_activa) unlink(archivo_recoleccion_encolada)
   if (bloqueo_activo || cola_activa) {
-    message("El Chamebador ya tiene una exploración activa o en cola.")
+    message("La Pala ya tiene una revisión activa o en cola.")
     return(invisible(FALSE))
   }
   if (!nzchar(binario_rscript) || !file.exists(archivo_recolector)) {
@@ -149,7 +149,7 @@ iniciar_recoleccion <- function() {
       stderr = FALSE,
       wait = FALSE
     )
-    message("Chamebador inició la exploración en segundo plano.")
+    message("La Pala inició la revisión en segundo plano.")
     TRUE
   }, error = function(error) {
     unlink(archivo_recoleccion_encolada, recursive = TRUE)
