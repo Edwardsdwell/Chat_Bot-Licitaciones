@@ -416,36 +416,37 @@ enlaces_mapa <- function(url, reglas, categoria) {
 }
 
 extraer_fecha_limite <- function(texto) {
-  normalizado <- normalizar_texto(texto)
-  contexto <- regexpr("(fecha limite|plazo de postulacion|hasta el|cierre de postulaciones|fecha de cierre)[^0-9]{0,55}", normalizado, perl = TRUE)
-  if (contexto[1L] < 0L) return("")
-  desde <- contexto[1L] + attr(contexto, "match.length")
-  resto <- substr(normalizado, desde, nchar(normalizado))
-
-  formato_iso <- regexpr("[0-9]{4}-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])", resto, perl = TRUE)
-  if (formato_iso[1L] > 0L) {
-    valor <- regmatches(resto, formato_iso)
-    fecha <- suppressWarnings(as.Date(valor, format = "%Y-%m-%d"))
-    if (!is.na(fecha)) return(as.character(fecha))
+  texto_original <- paste(as.character(texto), collapse = " ")
+  contexto <- "(?:fecha\\s+l[ií]mite|plazo\\s+de\\s+postulaci[oó]n|hasta\\s+el|cierre(?:\\s+el|\\s+de\\s+postulaciones)?|fecha\\s+de\\s+cierre)[^0-9]{0,55}"
+  iso <- "[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])(?![0-9])"
+  numerica <- "(?:0?[1-9]|[12][0-9]|3[01])[/.-](?:0?[1-9]|1[0-2])[/.-][0-9]{4}(?![0-9])"
+  textual <- "[0-3]?[0-9] de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre) de? [0-9]{4}(?![0-9])"
+  coincidencia <- regmatches(texto_original, regexec(paste0(contexto, "(", paste(c(iso, numerica, textual), collapse = "|"), ")"), texto_original, ignore.case = TRUE, perl = TRUE))[[1L]]
+  if (length(coincidencia) < 2L || !nzchar(coincidencia[[2L]])) return("")
+  valor <- coincidencia[[2L]]
+  fecha_valida <- function(fecha, anio, mes, dia) {
+    !is.na(fecha) && as.integer(format(fecha, "%Y")) == as.integer(anio) &&
+      as.integer(format(fecha, "%m")) == as.integer(mes) && as.integer(format(fecha, "%d")) == as.integer(dia)
   }
 
-  fecha_numerica <- regexpr("(0?[1-9]|[12][0-9]|3[01])[/.-](0?[1-9]|1[0-2])[/.-][0-9]{4}", resto, perl = TRUE)
-  if (fecha_numerica[1L] > 0L) {
-    valor <- regmatches(resto, fecha_numerica)
-    separador <- if (grepl("/", valor, fixed = TRUE)) "/" else if (grepl(".", valor, fixed = TRUE)) "." else "-"
-     formato <- paste0("%d", separador, "%m", separador, "%Y")
-    fecha <- suppressWarnings(as.Date(valor, format = formato))
-    if (!is.na(fecha)) return(as.character(fecha))
+  if (grepl("^[0-9]{4}-", valor)) {
+    partes <- as.integer(strsplit(valor, "-", fixed = TRUE)[[1L]])
+    fecha <- suppressWarnings(as.Date(sprintf("%04d-%02d-%02d", partes[1L], partes[2L], partes[3L]), format = "%Y-%m-%d"))
+    if (fecha_valida(fecha, partes[1L], partes[2L], partes[3L])) return(as.character(fecha))
+  }
+
+  if (grepl("^[0-9]{1,2}[/.-]", valor)) {
+    partes <- as.integer(strsplit(valor, "[/.-]", perl = TRUE)[[1L]])
+    fecha <- suppressWarnings(as.Date(sprintf("%04d-%02d-%02d", partes[3L], partes[2L], partes[1L]), format = "%Y-%m-%d"))
+    if (fecha_valida(fecha, partes[3L], partes[2L], partes[1L])) return(as.character(fecha))
   }
 
   meses <- c(enero = "01", febrero = "02", marzo = "03", abril = "04", mayo = "05", junio = "06", julio = "07", agosto = "08", septiembre = "09", setiembre = "09", octubre = "10", noviembre = "11", diciembre = "12")
-  fecha_textual <- regexpr("[0-3]?[0-9] de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre) de? [0-9]{4}", resto, perl = TRUE)
-  if (fecha_textual[1L] > 0L) {
-    valor <- regmatches(resto, fecha_textual)
+  if (grepl(" de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre) ", valor, ignore.case = TRUE)) {
     partes <- strsplit(valor, " +")[[1L]]
     mes <- meses[[partes[3L]]]
-    fecha <- suppressWarnings(as.Date(sprintf("%04d-%s-%02d", as.integer(partes[5L]), mes, as.integer(partes[1L]))))
-    if (!is.na(fecha)) return(as.character(fecha))
+    fecha <- suppressWarnings(as.Date(sprintf("%04d-%s-%02d", as.integer(partes[5L]), mes, as.integer(partes[1L])), format = "%Y-%m-%d"))
+    if (fecha_valida(fecha, partes[5L], mes, partes[1L])) return(as.character(fecha))
   }
   ""
 }

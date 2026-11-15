@@ -1,10 +1,230 @@
 "use strict";
-const $=(s)=>document.querySelector(s);let catalog={oportunidades:[]},sources=[];
-const norm=(s)=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
-const safeUrl=(value)=>{try{const u=new URL(value,location.href);return u.protocol==="https:"?u.href:""}catch{return""}};
-function rank(q){const terms=norm(q).split(" ").filter(x=>x.length>2&&!/^(hay|para|con|del|las|los|una|uno|por|que|antes|desde|hasta|este|esta|mes|dia)$/.test(x));if(!terms.length)return[];return catalog.oportunidades.map(x=>{const fields=[[x.titulo,5],[x.categoria,4],[x.departamento,3],[x.requisitos,2],[x.descripcion,1],[x.entidad,1],[x.fuente_nombre,1]],texts=fields.map(([v])=>norm(v)),score=terms.reduce((n,t)=>n+fields.reduce((sum,[,w],i)=>sum+(texts[i].includes(t)?w:0),0),0);return{x,score,matched:terms.filter(t=>texts.some(v=>v.includes(t))).length}}).filter(v=>v.score>0).sort((a,b)=>b.matched-a.matched||b.score-a.score).map(v=>v.x)}
-function answer(q,hits){const n=norm(q);if(/hay bloqueos|bloqueos/.test(n)){document.querySelector("#mapache")?.scrollIntoView({behavior:"smooth",block:"start"});return "Abrí MAPACHE con el último mapa y los reportes publicados. La información estática refleja su fecha de generación; confirma el estado actual con ABC y autoridades locales."}if(/hola|ayuda|que puedes/.test(n))return "Soy La Pala. Busco en el catálogo publicado empleos, becas, convocatorias, compras y normativa. Prueba una categoría, ciudad, entidad o palabra clave; cada resultado abre su publicación original.";if(hits.length)return `Encontré ${hits.length} publicaciones relacionadas. Te muestro primero las coincidencias más cercanas; confirma vigencia, requisitos y plazos en el enlace oficial.`;return "No encontré coincidencias en el catálogo publicado. Prueba con una categoría, ciudad o palabra más concreta, o abre las fuentes públicas configuradas."}
-function render(items){const box=$("#cards");box.replaceChildren(...items.slice(0,24).map(x=>{const a=document.createElement("article");a.className="card";const h=document.createElement("h3"),p=document.createElement("p"),link=document.createElement("a");h.textContent=x.titulo||"Publicación";const cat=String(x.categoria||"Oportunidad").replaceAll("_"," ");p.textContent=[cat,x.departamento].filter(Boolean).join(" · ");a.append(h,p);if(x.fecha_limite){const date=document.createElement("p");date.textContent=`Fecha límite: ${x.fecha_limite}`;a.append(date)}if(x.requisitos){const d=document.createElement("details"),s=document.createElement("summary"),body=document.createElement("p");s.textContent="Ver requisitos";body.textContent=x.requisitos;d.append(s,body);a.append(d)}link.href=safeUrl(x.url)||safeUrl(x.fuente_url)||"#";link.target="_blank";link.rel="noopener noreferrer";link.textContent="Abrir publicación original ↗";a.append(link);return a}));$("#count").textContent=String(items.length);$("#empty").hidden=items.length>0}
-function submit(q){if(!q.trim())return;const hits=rank(q),message=document.createElement("article"),u=document.createElement("p"),ans=document.createElement("p");message.className="assistant";u.textContent=q;ans.textContent=answer(q,hits);message.append(u,ans);$("#mensajes").append(message);render(hits);message.scrollIntoView({behavior:"smooth",block:"nearest"})}
-$("#form").addEventListener("submit",e=>{e.preventDefault();const q=$("#query").value;$("#query").value="";submit(q)});document.querySelectorAll("[data-query]").forEach(b=>b.addEventListener("click",()=>submit(b.dataset.query)));$("#limpiar").addEventListener("click",()=>{$("#mensajes").replaceChildren();render(catalog.oportunidades)});
-Promise.all([fetch("data/catalogo.json").then(r=>{if(!r.ok)throw Error("Catálogo no disponible");return r.json()}),fetch("data/fuentes.json").then(r=>{if(!r.ok)throw Error("Fuentes no disponibles");return r.json()})]).then(([c,s])=>{catalog=c;sources=s.fuentes||[];$("#estado").textContent=`Catálogo: ${c.oportunidades.length} publicaciones · actualizado ${c.actualizado_en||"sin fecha"}`;render(catalog.oportunidades);$("#source-list").replaceChildren(...sources.filter(x=>x.habilitada).map(x=>{const li=document.createElement("li"),a=document.createElement("a");a.href=safeUrl(x.url)||"#";a.target="_blank";a.rel="noopener noreferrer";a.textContent=x.nombre;li.append(a);return li}))}).catch(()=>{$("#estado").textContent="Catálogo no disponible";$("#empty").textContent="No se pudo cargar el catálogo publicado. Actualiza la página o revisa su publicación en GitHub Pages."});
+
+const $ = (selector) => document.querySelector(selector);
+const catalogUrl = "data/catalogo.json";
+const sourcesUrl = "data/fuentes.json";
+const stopWords = new Set(["hay", "para", "con", "del", "las", "los", "una", "uno", "por", "que", "antes", "desde", "hasta", "este", "esta", "mes", "dia", "como", "donde"]);
+let catalog = { oportunidades: [] };
+
+function normalize(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function safeUrl(value) {
+  try {
+    const url = new URL(value, location.href);
+    return url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function search(query) {
+  const terms = normalize(query).split(" ").filter((term) => term.length > 2 && !stopWords.has(term));
+  if (!terms.length) return [];
+
+  return catalog.oportunidades
+    .map((item) => {
+      const fields = [
+        [item.titulo, 5], [item.categoria, 4], [item.departamento, 3],
+        [item.requisitos, 2], [item.descripcion, 1], [item.entidad, 1], [item.fuente_nombre, 1],
+      ];
+      const values = fields.map(([value]) => normalize(value));
+      const matched = terms.filter((term) => values.some((value) => value.includes(term)));
+      const score = terms.reduce((total, term) => total + fields.reduce(
+        (sum, [, weight], index) => sum + (values[index].includes(term) ? weight : 0), 0,
+      ), 0);
+      return { item, score, matched: matched.length };
+    })
+    .filter((result) => result.score > 0)
+    .sort((a, b) => b.matched - a.matched || b.score - a.score)
+    .map(({ item }) => item);
+}
+
+function appendText(parent, tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  element.textContent = text;
+  parent.append(element);
+  return element;
+}
+
+function appendMessage(kind, text) {
+  const message = document.createElement("article");
+  message.className = `message ${kind}`;
+  const body = document.createElement("div");
+  body.className = "message-body";
+  if (kind === "assistant") {
+    appendText(message, "span", "message-mark", "P");
+    appendText(body, "p", "message-author", "La Pala");
+  } else {
+    appendText(body, "p", "message-author", "Tú");
+  }
+  appendText(body, "p", "message-copy", text);
+  message.append(body);
+  $("#mensajes").append(message);
+  return body;
+}
+
+function appendResults(body, items) {
+  const list = document.createElement("div");
+  list.className = "match-list";
+  list.setAttribute("aria-label", "Publicaciones encontradas");
+
+  for (const item of items.slice(0, 5)) {
+    const row = document.createElement("article");
+    row.className = "match";
+    const meta = document.createElement("div");
+    meta.className = "match-meta";
+    const category = String(item.categoria || "Oportunidad").replaceAll("_", " ");
+    meta.append(document.createTextNode(category));
+    if (item.departamento) meta.append(document.createTextNode(` · ${item.departamento}`));
+    row.append(meta);
+    appendText(row, "h2", "", item.titulo || "Publicación pública");
+    if (item.fecha_limite) appendText(row, "p", "", `Fecha límite: ${item.fecha_limite}`);
+    if (item.descripcion) {
+      const summary = item.descripcion.length > 230 ? `${item.descripcion.slice(0, 227).trim()}…` : item.descripcion;
+      appendText(row, "p", "", summary);
+    }
+
+    const href = safeUrl(item.url) || safeUrl(item.fuente_url);
+    if (href) {
+      const link = document.createElement("a");
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Abrir publicación original ↗";
+      row.append(link);
+    } else {
+      appendText(row, "p", "no-link", "Esta publicación no tiene un enlace válido.");
+    }
+    list.append(row);
+  }
+  body.append(list);
+}
+
+function appendMapacheLink(body) {
+  const link = document.createElement("a");
+  link.className = "mapache-link";
+  link.href = "mapache/index.html";
+  link.textContent = "Abrir MAPACHE · mapa y reportes ↗";
+  body.append(link);
+}
+
+function reply(query, results) {
+  const normalized = normalize(query);
+  const isMapache = /bloqueo|transitabilidad|sismo|incendio/.test(normalized);
+  const body = appendMessage(
+    "assistant",
+    isMapache
+      ? "MAPACHE reúne el mapa y los reportes de su última generación. La información puede estar desactualizada; contrástala con las autoridades."
+      : results.length
+        ? `Encontré ${results.length} ${results.length === 1 ? "publicación relacionada" : "publicaciones relacionadas"}. Revisa cada aviso en su fuente oficial.`
+        : "No encontré coincidencias en el catálogo. Prueba otra categoría, entidad o palabra del título.",
+  );
+
+  if (isMapache) appendMapacheLink(body);
+  else if (results.length) appendResults(body, results);
+  else appendText(body, "p", "no-results", "El catálogo contiene las publicaciones disponibles para esta edición estática.");
+  $("#mensajes").scrollTop = $("#mensajes").scrollHeight;
+}
+
+function submitQuery(value) {
+  const query = value.trim();
+  if (!query) return;
+  appendMessage("user", query);
+  reply(query, search(query));
+}
+
+function renderSources(sources) {
+  const list = $("#source-list");
+  const active = sources.filter((source) => source.habilitada && safeUrl(source.url));
+  list.replaceChildren();
+  if (!active.length) {
+    appendText(list, "li", "source-empty", "No hay fuentes activas en el archivo publicado.");
+    return;
+  }
+  for (const source of active) {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = safeUrl(source.url);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = source.nombre || "Fuente pública";
+    item.append(link);
+    list.append(item);
+  }
+}
+
+function setStatus(text, state) {
+  $("#estado").textContent = text;
+  $(".status-dot").className = `status-dot ${state}`;
+}
+
+function resetConversation() {
+  const thread = $("#mensajes");
+  thread.replaceChildren();
+  const body = appendMessage("assistant", "Busca empleos, becas, convocatorias o compras públicas. Te mostraré los avisos del catálogo y el enlace para revisarlos en su fuente.");
+  const suggestions = document.createElement("div");
+  suggestions.className = "suggestions";
+  suggestions.setAttribute("aria-label", "Prueba una búsqueda");
+  for (const [label, query] of [["Convocatorias", "Convocatoria"], ["Avisos laborales", "Laboral"], ["Concursos de méritos", "Concurso de méritos"]]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.query = query;
+    button.textContent = label;
+    suggestions.append(button);
+  }
+  body.append(suggestions);
+  bindSuggestions();
+  $("#query").focus();
+}
+
+function bindSuggestions() {
+  document.querySelectorAll("[data-query]").forEach((button) => {
+    button.addEventListener("click", () => submitQuery(button.dataset.query));
+  });
+}
+
+$("#form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const input = $("#query");
+  submitQuery(input.value);
+  input.value = "";
+  input.focus();
+});
+$("#limpiar").addEventListener("click", resetConversation);
+bindSuggestions();
+
+Promise.allSettled([
+  fetch(catalogUrl).then((response) => {
+    if (!response.ok) throw new Error("No se pudo cargar el catálogo.");
+    return response.json();
+  }),
+  fetch(sourcesUrl).then((response) => {
+    if (!response.ok) throw new Error("No se pudieron cargar las fuentes.");
+    return response.json();
+  }),
+]).then(([catalogResult, sourcesResult]) => {
+  if (catalogResult.status !== "fulfilled" || !catalogResult.value || !Array.isArray(catalogResult.value.oportunidades)) {
+    setStatus("Catálogo no disponible", "error");
+    return;
+  }
+
+  catalog = catalogResult.value;
+  $("#query").disabled = false;
+  $("#send").disabled = false;
+  const updated = catalog.actualizado_en ? ` · actualizado ${catalog.actualizado_en}` : "";
+  setStatus(`${catalog.oportunidades.length} publicaciones${updated}`, "ready");
+  if (sourcesResult.status === "fulfilled") renderSources(sourcesResult.value?.fuentes || []);
+  else {
+    const list = $("#source-list");
+    list.replaceChildren();
+    appendText(list, "li", "source-empty", "No se pudo cargar la lista de fuentes.");
+  }
+});

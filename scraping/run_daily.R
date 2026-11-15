@@ -1,4 +1,8 @@
-# Ejecuta una recolección manual 
+# Ejecuta una recolección manual
+if (.Platform$OS.type == "windows" && identical(Sys.getlocale("LC_CTYPE"), "C")) {
+  suppressWarnings(Sys.setlocale("LC_CTYPE", "English_United States.utf8"))
+}
+
 argumentos <- commandArgs(trailingOnly = FALSE)
 archivo_ejecutado <- grep("^--file=", argumentos, value = TRUE)
 rutas_iniciales <- getwd()

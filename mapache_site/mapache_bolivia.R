@@ -3,19 +3,18 @@
 # Reemplaza Shiny por HTML interactivo estático (sin servidor Shiny).
 #
 # EJECUCIÓN:
-#   install.packages(c("httr2","rvest","xml2","robotstxt","jsonlite","stringi",
-#     "igraph","leaflet","DT","visNetwork","htmltools","htmlwidgets"))
+#   install.packages(c("httr","xml2","robotstxt","jsonlite","leaflet",
+#     "DT","visNetwork","htmltools","htmlwidgets"))
 #   Sys.setenv(FIRMS_MAP_KEY="...", BRAVE_SEARCH_KEY="...") # opcionales
 #   Rscript mapache_bolivia.R
 #
-# SALIDA: mapache_site/index.html + CSV/JSON de auditoría y minería.
+# SALIDA: Chat_Bot-Public-Services/mapache/ (HTML + datos y recursos).
 # Los HTML son interactivos en navegador. Para datos nuevos, vuelve a ejecutar
 # el script; no se necesita ni se inicia una aplicación Shiny.
 # =============================================================================
 
 suppressPackageStartupMessages({
-  library(httr2); library(rvest); library(xml2); library(robotstxt)
-  library(jsonlite); library(stringi); library(igraph)
+  library(httr); library(xml2); library(robotstxt); library(jsonlite)
   library(leaflet); library(DT); library(visNetwork)
   library(htmltools); library(htmlwidgets)
 })
@@ -25,7 +24,7 @@ options(timeout = 35, stringsAsFactors = FALSE)
 
 # ------------------------------- CONFIGURACIÓN -------------------------------
 APP_NAME <- "MAPACHE"
-OUT_DIR <- Sys.getenv("MAPACHE_OUT", file.path("frontend", "mapache"))
+OUT_DIR <- Sys.getenv("MAPACHE_OUT", file.path("Chat_Bot-Public-Services", "mapache"))
 USER_AGENT <- Sys.getenv("MAPACHE_USER_AGENT",
                          "MapacheBolivia/2.0 (investigacion publica; contacto: contacto@ejemplo.org)")
 DELAY_SEC <- as.numeric(Sys.getenv("MAPACHE_DELAY_SEC", "8"))
@@ -63,7 +62,7 @@ SEED_URLS <- c(ABC=ABC_URL, SICOES="https://sicoes.gob.bo/portal/index.php", USG
 
 # ----------------------------- UTILIDADES SEGURAS -----------------------------
 `%notin%` <- function(x, table) !(x %in% table)
-sin_acentos <- function(x) stringi::stri_trans_general(tolower(as.character(x)), "Latin-ASCII")
+sin_acentos <- function(x) tolower(iconv(as.character(x), from="", to="ASCII//TRANSLIT", sub=""))
 safe_name <- function(x) gsub("[^A-Za-z0-9_-]+","_",x)
 write_csv_safe <- function(x, name) {
   if (is.data.frame(x)) utils::write.csv(x, file.path(OUT_DIR,"data",name),
@@ -102,16 +101,20 @@ http_get <- function(url, query=list(), use_cache=TRUE, headers=list()) {
     old <- cache_get(key); if (!is.null(old)) return(old)
   }
   polite_wait(host_of(url))
-  req <- httr2::request(url) |>
-    httr2::req_user_agent(USER_AGENT) |>
-    httr2::req_timeout(REQUEST_TIMEOUT) |>
-    httr2::req_options(followlocation=TRUE) |>
-    httr2::req_retry(max_tries=2)
-  if (length(headers)) req <- req |> httr2::req_headers(!!!headers)
-  resp <- req |> httr2::req_url_query(!!!query) |> httr2::req_perform()
-  out <- list(status=httr2::resp_status(resp), url=httr2::resp_url(resp),
-              type=httr2::resp_header(resp,"content-type") %||% "",
-              body=httr2::resp_body_string(resp))
+  argumentos <- c(list(url=url, httr::user_agent(USER_AGENT), httr::timeout(REQUEST_TIMEOUT),
+                       httr::config(followlocation=TRUE)),
+                  if(length(headers)) list(httr::add_headers(.headers=headers)),
+                  list(query=query))
+  resp <- NULL
+  for (intento in 1:2) {
+    resp <- tryCatch(do.call(httr::GET, argumentos), error=function(e) NULL)
+    if (!is.null(resp) && httr::status_code(resp) < 500) break
+    if (intento < 2) Sys.sleep(.5)
+  }
+  if (is.null(resp)) stop("La solicitud HTTP falló.")
+  out <- list(status=httr::status_code(resp), url=resp$url,
+              type=httr::headers(resp)[["content-type"]] %||% "",
+              body=httr::content(resp,as="text",encoding="UTF-8"))
   if (use_cache && out$status>=200 && out$status<400) cache_put(key,out)
   out
 }
@@ -208,7 +211,7 @@ extract_page <- function(url,depth=0,source="seed") {
   final <- if (!is.na(canonical) && nzchar(canonical)) resolve_url(p$url,canonical) else p$url
   html_elements(d,"script,style,noscript,svg,nav,footer,header,form") |> xml_remove()
   txt <- html_text2(html_element(d,"body"))
-  txt <- stringi::stri_replace_all_regex(txt,"\\s+"," ")
+  txt <- gsub("\\s+"," ",txt,perl=TRUE)
   anchors <- html_elements(d,"a[href]")
   links <- unique(vapply(head(anchors,MAX_LINKS_PAGE),function(a)
     resolve_url(p$url,html_attr(a,"href")),""))
@@ -272,16 +275,30 @@ link_quality <- function(pages,edges) {
     stringsAsFactors=FALSE)
 }
 build_graph <- function(pages,edges) {
-  if (!nrow(pages)) return(list(graph=make_empty_graph(),rank=data.frame()))
-  nodes <- unique(c(pages$final_url,if(nrow(edges))edges$to))
+  empty_edges <- data.frame(from=character(),to=character())
+  if (!nrow(pages)) return(list(graph=list(nodes=character(),edges=empty_edges),rank=data.frame()))
+  nodes <- unique(c(pages$final_url,if(nrow(edges))edges$from,if(nrow(edges))edges$to))
   e <- if(nrow(edges)) edges[,c("from","to")] else data.frame(from=character(),to=character())
-  g <- graph_from_data_frame(e,directed=TRUE,vertices=data.frame(name=nodes))
-  pr <- page_rank(g,directed=TRUE)$vector
-  ranks <- data.frame(url=names(pr),pagerank=as.numeric(pr),
-                      indegree=degree(g,mode="in"),outdegree=degree(g,mode="out"),
+  e <- unique(e)
+  origen <- match(e$from,nodes); destino <- match(e$to,nodes)
+  n <- length(nodes); rango <- rep(1/n,n)
+  salidas <- tabulate(origen,nbins=n)
+  entradas <- tabulate(destino,nbins=n)
+  for (i in seq_len(100L)) {
+    aportes <- numeric(n)
+    if(length(origen)) {
+      sumas <- rowsum(rango[origen]/salidas[origen],destino,reorder=FALSE)
+      aportes[as.integer(rownames(sumas))] <- sumas[,1L]
+    }
+    nuevo <- (1-.85)/n + .85 * (sum(rango[salidas == 0])/n + aportes)
+    if (sum(abs(nuevo-rango)) < 1e-10) { rango <- nuevo; break }
+    rango <- nuevo
+  }
+  ranks <- data.frame(url=nodes,pagerank=rango,
+                      indegree=entradas,outdegree=salidas,
                       stringsAsFactors=FALSE)
   ranks <- ranks[order(-ranks$pagerank),]
-  list(graph=g,rank=ranks)
+  list(graph=list(nodes=nodes,edges=e),rank=ranks)
 }
 
 # -------------------------- PREPROCESAMIENTO DE TEXTO --------------------------
@@ -295,7 +312,7 @@ preprocess_text <- function(pages) {
   if (!nrow(pages)) return(list(docs=data.frame(),terms=data.frame(),tfidf=data.frame()))
   docs <- pages[pages$error=="",c("final_url","title","text"),drop=FALSE]
   docs$clean <- tolower(docs$text)
-  docs$clean <- stringi::stri_trans_general(docs$clean,"Latin-ASCII")
+  docs$clean <- iconv(docs$clean,from="",to="ASCII//TRANSLIT",sub="")
   docs$clean <- gsub("https?://\\S+|www\\.\\S+"," ",docs$clean)
   docs$clean <- gsub("[^a-z0-9 ]"," ",docs$clean)
   docs$clean <- gsub("\\b[0-9]+\\b"," ",docs$clean)
@@ -459,13 +476,14 @@ map <- map |> addLayersControl(overlayGroups=c("Ciudades","Sismos","Focos de cal
 map_iframe <- save_widget(map,"mapa.html")
 
 # Grafo interactivo: nodos enlazados, tamaño por PageRank.
-if(vcount(network$graph)>0) {
+if(length(network$graph$nodes)>0) {
   g <- network$graph
-  nodes <- data.frame(id=V(g)$name,label=substr(V(g)$name,1,65),
-    value=as.numeric(network$rank$pagerank[match(V(g)$name,network$rank$url)] %||% 1)*1000,
-    title=V(g)$name,stringsAsFactors=FALSE)
+  nombres_nodos <- g$nodes
+  nodes <- data.frame(id=nombres_nodos,label=substr(nombres_nodos,1,65),
+    value=as.numeric(network$rank$pagerank[match(nombres_nodos,network$rank$url)] %||% 1)*1000,
+    title=nombres_nodos,stringsAsFactors=FALSE)
   nodes$value[!is.finite(nodes$value)] <- 1
-  ee <- as_data_frame(g,what="edges")
+  ee <- g$edges
   if(!nrow(ee)) ee <- data.frame(from=character(),to=character())
   graph_widget <- visNetwork(nodes,ee,height="580px",width="100%") |>
     visNodes(shape="dot",scaling=list(min=8,max=35)) |>
@@ -538,6 +556,13 @@ page <- tags$html(lang="es",
   )
 )
 htmltools::save_html(page,file.path(OUT_DIR,"index.html"),libdir="libs")
+# Los navegadores usan los JS minificados; mapas de fuente y estilos Sass no se publican.
+dir_libs <- file.path(OUT_DIR,"libs")
+fuentes_dev <- list.files(dir_libs,pattern="(\\.map$|\\.scss$)",recursive=TRUE,full.names=TRUE)
+if(length(fuentes_dev)) unlink(fuentes_dev)
+js <- list.files(dir_libs,pattern="\\.js$",recursive=TRUE,full.names=TRUE)
+js_duplicados <- js[file.exists(sub("\\.js$",".min.js",js))]
+if(length(js_duplicados)) unlink(js_duplicados)
 # Exportables para análisis reproducible y auditoría.
 write_csv_safe(search_results,"search_results.csv")
 write_csv_safe(pages[,setdiff(names(pages),"text"),drop=FALSE],"pages.csv")

@@ -1,17 +1,15 @@
-# La Pala · Chatbot estático para GitHub Pages
+# La Pala
 
-Versión sin servidor del chatbot La Pala. El navegador busca localmente dentro de `data/catalogo.json`; no hay llamadas a una API ni recopilación directa desde los portales. Las fuentes están enlazadas para confirmar avisos, plazos y requisitos.
+Chat estático para buscar oportunidades públicas de Bolivia en `data/catalogo.json`. Cada coincidencia lleva a su publicación original; el navegador no rastrea portales en vivo.
 
-## Publicar
+## Publicación
 
-El workflow de la raíz del repositorio (`.github/workflows/pages.yml`) publica esta carpeta al hacer push a `main` o al ejecutarlo manualmente. En GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**. La dirección de proyecto será `https://edwardsdwell.github.io/Chat_Bot-Licitaciones/` si Pages está habilitado para el repositorio.
+GitHub Actions publica este repositorio en GitHub Pages al actualizar `main`. Configura **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
-## Actualizar catálogo
+## Contenido
 
-Reemplaza `data/catalogo.json` por una exportación revisada. Solo publica datos cuya licencia y sensibilidad permitan distribución pública. El archivo de esta versión contiene los registros del catálogo local que estaban vigentes y verificados en la fecha de exportación. El sitio no los actualiza automáticamente.
+- `index.html`, `styles.css`, `app.js`: interfaz y búsqueda local.
+- `data/`: catálogo y fuentes que se publican.
+- `mapache/`: última salida estática de MAPACHE.
 
-## Alcance de Pages
-
-GitHub Pages solo entrega archivos estáticos. Este chatbot ofrece una búsqueda local funcional sobre el catálogo publicado; no puede rastrear sitios, iniciar una recolección, consultar estado en vivo ni escribir logs del servidor. Para extracción programada hace falta un backend o una tarea externa que regenere el catálogo. No se evaden CAPTCHA, autenticación, robots.txt ni límites de las fuentes.
-
-MAPACHE se incluye como sitio estático dentro de `mapache/`. La capa de bloqueos reflejará la última salida generada, no un feed en tiempo real.
+Para actualizar el catálogo o MAPACHE, genera y revisa los datos antes de publicarlos. Las fechas, requisitos y estados deben confirmarse en la fuente oficial.

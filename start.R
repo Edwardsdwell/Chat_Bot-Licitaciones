@@ -1,3 +1,7 @@
+if (.Platform$OS.type == "windows" && identical(Sys.getlocale("LC_CTYPE"), "C")) {
+  suppressWarnings(Sys.setlocale("LC_CTYPE", "English_United States.utf8"))
+}
+
 argumentos <- commandArgs(trailingOnly = FALSE)
 archivo_ejecutado <- grep("^--file=", argumentos, value = TRUE)
 rutas_iniciales <- getwd()
@@ -36,8 +40,7 @@ for (ruta in unique(rutas_iniciales[nzchar(rutas_iniciales)])) {
 }
 
 es_raiz <- vapply(unique(raices_candidatas), function(ruta) {
-  (file.exists(file.path(ruta, "backend", "plumber.R")) ||
-     file.exists(file.path(ruta, "backend", "servidor.R"))) &&
+  file.exists(file.path(ruta, "backend", "servidor.R")) &&
     file.exists(file.path(ruta, "scraping", "sources.json"))
 }, logical(1))
 
@@ -82,11 +85,7 @@ if (.Platform$OS.type == "windows") {
 cat("\nLA PALA · INICIO\n")
 cat("Proyecto:", raiz, "\n")
 
-motor <- tolower(trimws(Sys.getenv("LA_PALA_MOTOR", "httpuv")))
-if (!motor %in% c("httpuv", "plumber")) {
-  stop("LA_PALA_MOTOR debe ser 'httpuv' o 'plumber'.", call. = FALSE)
-}
-paquetes_requeridos <- c(if (motor == "plumber") "plumber" else "httpuv", "jsonlite", "later", "httr", "xml2", "digest")
+paquetes_requeridos <- c("httpuv", "jsonlite", "later", "httr", "xml2", "digest")
 paquetes_faltantes <- paquetes_requeridos[
   !vapply(paquetes_requeridos, requireNamespace, logical(1), quietly = TRUE)
 ]
@@ -105,9 +104,7 @@ direccion <- paste0("http://", anfitrion, ":", puerto, "/")
 cat("Aplicación:", direccion, "\n")
 cat("Fuentes:", file.path(raiz, "scraping", "sources.json"), "\n")
 
-if (motor == "plumber") {
-  api <- tryCatch(plumber::plumb(file.path(raiz, "backend", "plumber.R")), error = function(error) stop("No se pudo iniciar la API: ", conditionMessage(error), call. = FALSE))
-} else source(file.path(raiz, "backend", "servidor.R"), local = TRUE)
+source(file.path(raiz, "backend", "servidor.R"), local = TRUE)
 
 binario_rscript <- Sys.which("Rscript")
 if (!nzchar(binario_rscript)) {
@@ -189,4 +186,4 @@ if (anfitrion %in% c("127.0.0.1", "localhost") &&
 }
 
 cat("Deja esta ventana abierta mientras uses la aplicación. Pulsa Ctrl+C para detenerla.\n\n")
-if (motor == "plumber") api$run(host = anfitrion, port = puerto, swagger = FALSE) else servir(anfitrion, puerto)
+servir(anfitrion, puerto)

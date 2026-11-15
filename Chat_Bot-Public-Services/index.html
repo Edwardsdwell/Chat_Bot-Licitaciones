@@ -1,48 +1,80 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#100d0c"><meta name="description" content="La Pala: asistente conversacional para encontrar oportunidades públicas de Bolivia, con fuentes y datos verificables.">
-  <title>La Pala · Radar público de Bolivia</title><link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#efeee8">
+  <meta name="description" content="La Pala te ayuda a encontrar oportunidades públicas de Bolivia y consultar cada aviso en su fuente original.">
+  <title>La Pala · Oportunidades públicas de Bolivia</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="top"><a class="brand" href="./" aria-label="La Pala, inicio">la pala <span>Radar público · Bolivia</span></a><div class="top-meta"><span class="signal" aria-hidden="true"></span><span id="estado" role="status">Cargando catálogo…</span></div></header>
-  <main>
-    <section class="intro"><div><p class="eyebrow">Tu asistente de oportunidades públicas</p><h1>¿Qué estás buscando?</h1><p>Pregunta por empleos, becas, convocatorias, compras públicas, normas o bloqueos. La Pala busca en el catálogo publicado y te lleva a la fuente.</p></div><div class="intro-mark" aria-hidden="true">LP</div></section>
-    <nav class="tabs" role="tablist" aria-label="Secciones de La Pala">
-      <button class="tab active" id="tab-chat" role="tab" aria-selected="true" aria-controls="panel-chat" data-tab="chat">Conversar</button>
-      <button class="tab" id="tab-analisis" role="tab" aria-selected="false" aria-controls="panel-analisis" data-tab="analisis">Laboratorio</button>
-      <button class="tab" id="tab-mapache" role="tab" aria-selected="false" aria-controls="panel-mapache" data-tab="mapache">MAPACHE <span id="badge-bloqueos" class="tab-badge">Estado</span></button>
-    </nav>
-    <section class="tab-panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
-      <section class="chat">
-        <div class="chat-head"><div class="assistant-mark" aria-hidden="true">P</div><div><h2>La Pala</h2><p>Asistente público · consulta el catálogo verificado</p></div><button id="limpiar" class="quiet" type="button">Nueva consulta</button></div>
-        <div id="mensajes" class="messages" aria-live="polite" aria-relevant="additions text"><article class="message assistant"><span class="message-label">La Pala</span><p>Hola. Puedo buscar oportunidades públicas y mostrarte su publicación original. ¿Qué necesitas encontrar?</p></article></div>
-        <div class="suggestions" aria-label="Consultas de ejemplo"><button data-query="Empleos públicos">Empleos públicos</button><button data-query="Becas abiertas">Becas abiertas</button><button data-query="Licitaciones SICOES">Licitaciones SICOES</button><button data-query="Normas y decretos">Normas y decretos</button><button data-query="¿Hay bloqueos?">¿Hay bloqueos?</button></div>
-        <form id="form"><label class="sr-only" for="query">Escribe tu consulta</label><input id="query" required maxlength="240" placeholder="Escribe una pregunta o palabra clave…" autocomplete="off"><button id="send">Consultar <span aria-hidden="true">↗</span></button></form><p class="chat-note">La respuesta se basa en el catálogo publicado. Comprueba plazos y requisitos en la fuente oficial.</p>
+  <div class="app-shell" data-ui="app">
+    <aside class="sidebar" aria-label="Navegación">
+      <a class="brand" href="./" aria-label="La Pala, inicio">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-name">la pala</span>
+      </a>
+      <p class="sidebar-caption">Oportunidades públicas<br>de Bolivia</p>
+
+      <nav class="primary-nav" aria-label="Secciones">
+        <a class="nav-link active" href="./" aria-current="page"><span class="nav-glyph" aria-hidden="true">↗</span> Conversar</a>
+        <a class="nav-link" href="mapache/index.html"><span class="nav-glyph map-glyph" aria-hidden="true">⌖</span> MAPACHE</a>
+        <a class="nav-link" href="#fuentes"><span class="nav-glyph source-glyph" aria-hidden="true">≡</span> Fuentes oficiales</a>
+      </nav>
+
+      <section class="sidebar-sources" id="fuentes" aria-labelledby="sources-title">
+        <h2 id="sources-title">Fuentes consultadas</h2>
+        <ul id="source-list"><li class="source-loading">Cargando fuentes…</li></ul>
       </section>
-      <section class="results" aria-labelledby="result-title"><div class="section-head"><div><p class="eyebrow">CATÁLOGO PÚBLICO</p><h2 id="result-title">Oportunidades vigentes</h2></div><span id="count" class="count">0</span></div><div id="cards" class="cards"></div><p id="empty" class="empty">No hay coincidencias para esta consulta. Prueba otra categoría o visita una fuente pública.</p></section>
-      <section class="sources"><div><p class="eyebrow">FUENTES</p><h2>Portales configurados</h2><p>El sitio publica una copia del catálogo. No consulta ni rastrea portales en vivo desde el navegador.</p></div><details><summary>Consultar fuentes</summary><ul id="source-list"></ul></details></section>
-    </section>
-    <section class="tab-panel" id="panel-analisis" role="tabpanel" aria-labelledby="tab-analisis" hidden>
-      <header class="panel-heading"><div><p class="eyebrow">ANÁLISIS DEL CATÁLOGO</p><h2>Laboratorio de minería web</h2><p>Estadística y grafos calculados en tu navegador sobre los archivos publicados.</p></div><button id="refresh-analysis" class="quiet" type="button">Actualizar datos</button></header>
-      <div id="analysis-kpis" class="kpis" aria-live="polite"></div>
-      <div class="analysis-grid"><section class="analysis-card"><h3>Publicaciones en el tiempo</h3><p class="muted">Frecuencia por fecha disponible en el catálogo.</p><div id="timeline" class="chart" role="img" aria-label="Frecuencia de publicaciones por fecha"></div><p id="timeline-note" class="interpretation"></p></section>
-      <section class="analysis-card"><h3>Señales atípicas</h3><p class="muted">Regla IQR aplicada al volumen por fuente.</p><div id="anomalies"></div></section>
-      <section class="analysis-card wide"><div class="card-heading"><div><h3>Fuentes y correlaciones</h3><p class="muted">Pearson compara métricas de cada fuente. Ajusta el mínimo de fuentes antes de interpretarlo.</p></div><label class="field">Mínimo de fuentes <select id="corr-min"><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label></div><div id="correlation"></div></section>
-      <section class="analysis-card"><h3>Grafo dirigido · autoridad</h3><p class="muted">Se calcula con enlaces entre páginas del rastreo publicado.</p><div id="graph"></div><p id="graph-story" class="interpretation"></p></section>
-      <section class="analysis-card"><h3>Preprocesamiento y recuperación</h3><ol class="methods"><li><b>Extracción:</b> elimina script, estilos, navegación y pie; conserva título, metadatos, texto y enlaces.</li><li><b>Normalización:</b> Unicode, minúsculas, espacios y puntuación.</li><li><b>Tokenización:</b> términos con acentos normalizados y palabras vacías en español filtradas.</li><li><b>Reducción:</b> stemming ligero por sufijos; TF-IDF para ponderar términos discriminantes.</li><li><b>Recuperación:</b> ranking por coincidencia ponderada en título, categoría, entidad, requisitos y descripción.</li></ol><p class="notice">La edición Pages solo calcula sobre datos publicados. El rastreo activo, el análisis SEO de páginas y la actualización requieren el backend R.</p></section>
-      <section class="analysis-card wide"><div class="card-heading"><div><h3>Auditoría SEO de las fuentes</h3><p class="muted">El navegador no puede inspeccionar otras webs por las políticas de origen cruzado.</p></div><label class="field">Fuente <select id="seo-source" aria-label="Seleccionar una fuente"></select></label></div><div id="seo-output" class="seo-output">Selecciona una fuente para ver las señales disponibles en el catálogo.</div></section></div>
-      <details class="analysis-card technical"><summary>Métodos, fórmulas y límites</summary><div id="method-detail" class="methods-detail"></div></details>
-    </section>
-    <section class="tab-panel" id="panel-mapache" role="tabpanel" aria-labelledby="tab-mapache" hidden>
-      <header class="panel-heading"><div><p class="eyebrow">MAPACHE · MONITOREO PÚBLICO</p><h2>¿Hay bloqueos?</h2><p>Mapa y reportes publicados en la última ejecución del recolector.</p></div><a class="quiet link-button" href="mapache/index.html" target="_blank" rel="noopener noreferrer">Abrir informe MAPACHE completo ↗</a></header>
-      <div class="map-summary"><strong id="map-status">Cargando el último reporte…</strong><span id="map-generated"></span></div>
-      <section class="analysis-card map-frame"><div class="card-heading"><div><h3>Mapa de Bolivia</h3><p class="muted">La capa base usa OpenStreetMap; los puntos corresponden a datos del último reporte.</p></div><span id="map-points" class="count">—</span></div><iframe src="mapache/mapa.html" title="Mapa de MAPACHE" loading="lazy"></iframe></section>
-      <section class="analysis-card"><h3>Qué significan estos datos</h3><p class="interpretation">MAPACHE muestra los datos de su última ejecución; no confirma por sí solo el estado actual de una ruta. Contrasta bloqueos con ABC y reportes locales antes de desplazarte.</p><div id="blockade-reports" class="report-list"></div></section>
-    </section>
-    <footer><span>La Pala · Bolivia</span><span>Catálogo estático · revisa siempre la publicación original.</span></footer>
-  </main>
-  <script src="app.js" defer></script><script src="analytics.js" defer></script>
+
+      <div class="sidebar-foot">
+        <span class="status-dot" aria-hidden="true"></span>
+        <p id="estado" role="status" aria-live="polite">Cargando catálogo…</p>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <p>Buscador público <span>/</span> Bolivia</p>
+        <a href="mapache/index.html" class="topbar-mapache">Abrir MAPACHE <span aria-hidden="true">↗</span></a>
+      </header>
+
+      <section class="conversation" aria-label="Chat de La Pala">
+        <header class="conversation-head">
+          <div>
+            <p class="section-caption">Asistente de oportunidades</p>
+            <h1>¿Qué estás buscando?</h1>
+          </div>
+          <button id="limpiar" class="new-chat" type="button" aria-label="Iniciar una conversación nueva">Nueva conversación</button>
+        </header>
+
+        <div id="mensajes" class="thread" aria-live="polite" aria-relevant="additions text">
+          <article class="message assistant welcome-message">
+            <div class="message-mark" aria-hidden="true">P</div>
+            <div class="message-body">
+              <p class="message-author">La Pala</p>
+              <p>Busca empleos, becas, convocatorias o compras públicas. Te mostraré los avisos del catálogo y el enlace para revisarlos en su fuente.</p>
+              <div class="suggestions" aria-label="Prueba una búsqueda">
+                <button type="button" data-query="Convocatoria">Convocatorias</button>
+                <button type="button" data-query="Laboral">Avisos laborales</button>
+                <button type="button" data-query="Concurso de méritos">Concursos de méritos</button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="composer-dock">
+          <form id="form" class="composer">
+            <label class="sr-only" for="query">Escribe qué oportunidad buscas</label>
+            <input id="query" name="q" type="search" required maxlength="240" autocomplete="off" placeholder="Ej.: convocatoria laboral, becas en La Paz…" disabled>
+            <button id="send" type="submit" aria-label="Enviar consulta" disabled><span>Buscar</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <p class="composer-note">La Pala busca en el catálogo publicado. Confirma requisitos y fechas en la fuente oficial.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="app.js" defer></script>
 </body>
 </html>

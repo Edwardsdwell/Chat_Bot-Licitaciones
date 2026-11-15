@@ -9,24 +9,18 @@ MAPACHE reemplaza la aplicación Shiny por un sitio HTML interactivo generado co
 
 ```r
 install.packages(c(
-  "httr2", "rvest", "xml2", "robotstxt", "jsonlite", "stringi",
-  "igraph", "leaflet", "DT", "visNetwork", "htmltools", "htmlwidgets"
+  "httr", "xml2", "robotstxt", "jsonlite", "leaflet",
+  "DT", "visNetwork", "htmltools", "htmlwidgets"
 ))
 ```
 
-3. Opcionalmente configura claves:
-   - `FIRMS_MAP_KEY`: NASA FIRMS (focos térmicos).
-   - `BRAVE_SEARCH_KEY`: Brave Search API.
-   - `BING_SEARCH_KEY`: Bing Web Search API.
-   - `GOOGLE_CSE_KEY` y `GOOGLE_CSE_CX`: Google Custom Search JSON API.
-
-4. Ejecuta desde una terminal:
+3. Ejecuta desde la raíz del proyecto:
 
 ```bash
-Rscript mapache_bolivia.R
+Rscript mapache_site/mapache_bolivia.R
 ```
 
-Por defecto genera `frontend/mapache/index.html`, que La Pala sirve bajo `/mapache/`. Abre La Pala para verla o el HTML directamente. Define `MAPACHE_OUT=mapache_site` para guardar la salida en esa carpeta. No hay servidor Shiny.
+Genera la única salida en `Chat_Bot-Public-Services/mapache/`. Pages la publica directamente y el servidor local la sirve bajo `/mapache/`. No hay servidor Shiny ni copias de salida guardadas en esta carpeta.
 
 ## Qué procesa
 

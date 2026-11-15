@@ -1,5 +1,6 @@
 .git
 .Renviron
+contraseñas.txt
 .env
 .env.*
 !.env.example

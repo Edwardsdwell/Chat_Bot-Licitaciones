@@ -133,8 +133,20 @@ function registrarTurnoChat(consulta, respuesta) {
   if (respuesta?.detalle_solicitado && ids.length === 1) estado.seleccionChat = ids[0];
 }
 
-function urlChat(consulta, contexto = contextoChat()) {
-  return `/api/chat?q=${encodeURIComponent(consulta)}&limit=6&contexto=${encodeURIComponent(contexto)}`;
+function urlChat(consulta, contexto = contextoChat(), seguimiento = false) {
+  return `/api/chat?q=${encodeURIComponent(consulta)}&limit=6&contexto=${encodeURIComponent(contexto)}${seguimiento ? "&seguimiento=1" : ""}`;
+}
+
+// Escribe el texto de una respuesta como párrafos (los saltos de línea simples se conservan por CSS).
+function escribirTexto(globo, texto) {
+  globo.querySelectorAll(".texto-respuesta").forEach((p) => p.remove());
+  const nodos = String(texto || "").split(/\n{2,}/).map((t) => t.trim()).filter(Boolean).map((t) => {
+    const p = document.createElement("p");
+    p.className = "texto-respuesta";
+    p.textContent = t;
+    return p;
+  });
+  globo.prepend(...nodos);
 }
 
 async function solicitarRecoleccion(clave) {
@@ -251,8 +263,9 @@ function mostrarOportunidades(oportunidades, titulo = "Cierres próximos", detal
   }
 }
 
-function presentarDetallesRespuesta(globo, respuesta) {
+function presentarDetallesRespuesta(globo, respuesta, parcial = false) {
   globo.querySelectorAll(".conteo-resultados-chat, .resultados-chat, .fuentes-chat, .estado-exploracion-chat, .detalle-extraido-chat").forEach((elemento) => elemento.remove());
+  if (!parcial) globo.querySelectorAll(".sugerencias-chat, .sello-agente").forEach((elemento) => elemento.remove());
   if (respuesta?.oportunidades?.length) {
     const conteo = document.createElement("p");
     conteo.className = "texto-secundario conteo-resultados-chat";
@@ -366,6 +379,26 @@ function presentarDetallesRespuesta(globo, respuesta) {
     progreso.textContent = respuesta.exploracion.mensaje;
     globo.append(progreso);
   }
+
+  if (!parcial && respuesta?.agente?.usado) {
+    const sello = document.createElement("small");
+    sello.className = "sello-agente";
+    sello.textContent = "Respuesta redactada con IA a partir de los datos de las fuentes";
+    globo.append(sello);
+  }
+
+  if (!parcial && Array.isArray(respuesta?.sugerencias) && respuesta.sugerencias.length) {
+    const caja = document.createElement("div");
+    caja.className = "sugerencias-chat";
+    respuesta.sugerencias.slice(0, 4).forEach((texto) => {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.dataset.sugerencia = String(texto);
+      boton.textContent = String(texto);
+      caja.append(boton);
+    });
+    globo.append(caja);
+  }
 }
 
 function agregarMensaje(texto, tipo = "asistente", respuesta = null) {
@@ -373,9 +406,7 @@ function agregarMensaje(texto, tipo = "asistente", respuesta = null) {
   fila.className = `fila-mensaje ${tipo === "persona" ? "mensaje-usuario" : "mensaje-asistente"}`;
   const globo = document.createElement("div");
   globo.className = "globo";
-  const parrafo = document.createElement("p");
-  parrafo.textContent = texto;
-  globo.append(parrafo);
+  escribirTexto(globo, texto);
 
   if (respuesta) presentarDetallesRespuesta(globo, respuesta);
 
@@ -426,11 +457,12 @@ async function seguirExploracion(identificador, consulta, filaRespuesta, context
     ultimaMarca = marca;
 
     try {
-      const datos = await solicitarJson(urlChat(consulta, contexto));
+      const datos = await solicitarJson(urlChat(consulta, contexto, true));
       if (identificador !== estado.secuenciaConsulta) return;
-      const texto = filaRespuesta.querySelector(".globo > p");
-      if (texto) texto.textContent = datos.respuesta || texto.textContent;
-      presentarDetallesRespuesta(filaRespuesta.querySelector(".globo"), datos);
+      const globoRespuesta = filaRespuesta.querySelector(".globo");
+      // Si la respuesta ya la redactó el agente IA, el refresco automático solo actualiza las tarjetas.
+      if (!filaRespuesta.dataset.agente && datos.respuesta) escribirTexto(globoRespuesta, datos.respuesta);
+      presentarDetallesRespuesta(globoRespuesta, datos, true);
       if (Array.isArray(datos.oportunidades)) {
         estado.oportunidades = datos.oportunidades;
         estado.ultimosIdsChat = datos.oportunidades.map((item) => String(item.id || "")).filter(Boolean).slice(0, 6);
@@ -483,6 +515,7 @@ async function consultarChat(consulta) {
     if (datos.fallo) throw new Error("Consulta fallida");
     filaEspera.remove();
     const filaRespuesta = agregarMensaje(datos.respuesta || "La consulta terminó sin una respuesta disponible.", "asistente", datos);
+    if (datos.agente?.usado) filaRespuesta.dataset.agente = "1";
     registrarTurnoChat(texto, datos);
     if (["en_cola", "en_curso"].includes(datos.exploracion?.estado)) {
       void seguirExploracion(identificador, texto, filaRespuesta, contexto);
@@ -758,6 +791,12 @@ document.querySelectorAll("[data-consulta]").forEach((boton) => {
 buscarElemento("#mostrar-imagen-chamba")?.addEventListener("click", () => {
   agregarMensaje("Muéstrame la imagen de Chamba", "persona");
   mostrarImagenChamba();
+});
+
+document.addEventListener("click", (evento) => {
+  const sugerida = evento.target.closest("[data-sugerencia]");
+  if (!sugerida || estado.ocupado) return;
+  void consultarChat(sugerida.dataset.sugerencia);
 });
 
 document.addEventListener("click", (evento) => {

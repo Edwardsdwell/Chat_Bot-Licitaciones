@@ -48,7 +48,6 @@ ARCHIVO_ESTADO_RECOLECCION <- file.path(DIR_LOGS, "estado_recoleccion.json")
 ARCHIVO_BLOQUEO_RECOLECCION <- file.path(DIR_LOGS, "recoleccion.lock")
 ARCHIVO_RECOLECCION_ENCOLADA <- file.path(DIR_LOGS, "recoleccion.encolada")
 ARCHIVO_FALLAS <- file.path(DIR_LOGS, "fallas.txt")
-ARCHIVO_RANKING <- file.path(RAIZ, "search", "ranking.R")
 
 marca_reciente <- function(ruta, limite, unidad = "mins") {
   if (!file.exists(ruta)) return(FALSE)
@@ -57,8 +56,19 @@ marca_reciente <- function(ruta, limite, unidad = "mins") {
   edad <- suppressWarnings(as.numeric(difftime(Sys.time(), marca, units = unidad)))
   is.finite(edad) && edad >= 0 && edad < limite
 }
-if (file.exists(ARCHIVO_RANKING)) source(ARCHIVO_RANKING, local = .GlobalEnv)
 source(file.path(RAIZ, "analisis", "motor.R"), local = .GlobalEnv)
+
+# Módulos del chat: preprocesamiento/extracción/redacción (obligatorio) y agente IA (opcional).
+cargar_modulo <- function(nombre, obligatorio = FALSE) {
+  candidatos <- unique(c(file.path(RAIZ, "backend", nombre), file.path(RAIZ, nombre), file.path(getwd(), nombre), file.path(getwd(), "backend", nombre)))
+  ruta <- candidatos[file.exists(candidatos)][1L]
+  if (is.na(ruta)) {
+    if (obligatorio) stop("No se encontró el módulo ", nombre, " junto a nucleo.R.")
+    return(invisible(FALSE))
+  }
+  source(ruta, local = .GlobalEnv)
+  invisible(TRUE)
+}
 
 registrar_falla <- function(origen, error) {
   dir.create(dirname(ARCHIVO_FALLAS), recursive = TRUE, showWarnings = FALSE)
@@ -152,7 +162,8 @@ aligerar_catalogo <- function(v) {
       x <- o[[campo]]
       if (is.character(x) && length(x) == 1L && !is.na(x) && nchar(x) > limites[[campo]]) o[[campo]] <- substr(x, 1L, limites[[campo]])
     }
-    o
+    # Extracción de texto: departamento, plazo y datos clave (haber, vacantes, contacto, requisitos).
+    tryCatch(enriquecer_oportunidad(o), error = function(e) o)
   })
   v
 }
@@ -372,14 +383,28 @@ detectar_categoria <- function(consulta, categoria = "") {
   ""
 }
 
-buscar_oportunidades <- function(consulta = "", categoria = "", hasta = NULL, limite = 6L) {
+buscar_oportunidades <- function(consulta = "", categoria = "", hasta = NULL, limite = 6L, pre = NULL) {
+  if (is.null(pre)) pre <- preprocesar_consulta(consulta)
   resultados <- oportunidades_activas()
   elegida <- detectar_categoria(consulta, categoria)
   if (nzchar(elegida)) resultados <- Filter(function(x) identical(texto_seguro(x$categoria), elegida), resultados)
 
+  # Filtro por departamento: primero coincidencias explícitas; si no hay, las de alcance nacional o sin ubicación.
+  relajado <- FALSE
+  if (nzchar(pre$departamento)) {
+    exactos <- Filter(function(x) coincide_departamento(x, pre$departamento), resultados)
+    if (length(exactos)) {
+      resultados <- exactos
+    } else {
+      amplios <- Filter(sin_dato_departamento, resultados)
+      relajado <- length(amplios) > 0L
+      resultados <- amplios
+    }
+  }
+
   fecha_tope <- if (!is.null(hasta) && nzchar(texto_seguro(hasta))) fecha_segura(hasta) else as.Date(NA)
-  texto <- normalizar_texto(consulta)
-  if (is.na(fecha_tope) && grepl("fin de mes|final de mes|fin del mes|final del mes|fin mes|final mes|este mes|antes de terminar el mes", texto)) {
+  if (is.na(fecha_tope) && !is.na(pre$fecha_tope)) fecha_tope <- pre$fecha_tope
+  if (is.na(fecha_tope) && grepl("fin de mes|final de mes|fin del mes|final del mes|fin mes|final mes|este mes|antes de terminar el mes", pre$normalizada)) {
     fecha_tope <- fecha_fin_mes()
   }
   if (!is.na(fecha_tope)) {
@@ -389,8 +414,9 @@ buscar_oportunidades <- function(consulta = "", categoria = "", hasta = NULL, li
     }, resultados)
   }
 
+  texto <- pre$texto_busqueda
   puntajes <- numeric(length(resultados))
-  terminos <- terminos_consulta(texto)
+  terminos <- expandir_terminos(terminos_consulta(texto))
   if (length(terminos) && length(resultados)) {
     puntajes <- puntuar_bm25(resultados, terminos)
     # Si la persona ya indicó una categoría, conserva sus publicaciones aunque
@@ -409,7 +435,9 @@ buscar_oportunidades <- function(consulta = "", categoria = "", hasta = NULL, li
     oportunidades = head(resultados, limitar(limite)),
     total = length(resultados),
     categoria = elegida,
-    fecha_tope = if (is.na(fecha_tope)) "" else as.character(fecha_tope)
+    fecha_tope = if (is.na(fecha_tope)) "" else as.character(fecha_tope),
+    departamento = pre$departamento,
+    relajado = relajado
   )
 }
 
@@ -514,7 +542,13 @@ respuesta_detalle <- function(oportunidad, detalle, consulta) {
   titulo <- texto_seguro(oportunidad$titulo, "la publicación seleccionada")
   entidad <- texto_seguro(oportunidad$entidad, texto_seguro(oportunidad$fuente_nombre, "la fuente pública"))
   if (!identical(texto_seguro(detalle$estado), "ok")) {
-    return(paste0("La oferta «", titulo, "» corresponde a ", entidad, ". No pude obtener texto detallado de la ficha en esta consulta; el enlace lleva a la publicación registrada para verificarla directamente."))
+    dc <- oportunidad$datos_clave
+    resumen <- describir_datos_clave(oportunidad)
+    req <- if (is.list(dc) && length(dc$requisitos)) paste0(" Requisitos que figuran en el texto guardado: ", sub("[.]+$", "", paste(as.character(unlist(dc$requisitos)), collapse = " ")), ".") else ""
+    plazo <- texto_dias_restantes(fecha_segura(oportunidad$fecha_limite))
+    return(paste0("La oferta «", titulo, "» corresponde a ", entidad, " y ", plazo, ".",
+      if (nzchar(resumen)) paste0(" Datos que pude extraer: ", resumen, ".") else "", req,
+      " No pude leer la ficha completa en esta consulta; abre el enlace para verificar requisitos y forma de postulación en la fuente oficial."))
   }
   campos <- detalle$campos %||% list()
   es_requisito <- grepl("requisit|document|perfil", normalizar_texto(consulta))
@@ -541,6 +575,7 @@ respuesta_detalle <- function(oportunidad, detalle, consulta) {
 respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NULL) {
   contexto <- normalizar_contexto_chat(contexto)
   texto_estado <- normalizar_texto(consulta)
+  pre <- preprocesar_consulta(consulta)
   if (grepl("(^| )hay bloqueos( |$)|bloqueos en las fuentes|fuentes bloqueadas", texto_estado)) {
     fuentes <- catalogo()$fuentes %||% list()
     activas <- Filter(function(x) is.list(x) && isTRUE(x$habilitada %||% TRUE), fuentes)
@@ -567,6 +602,13 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NUL
   }
   categoria_detectada <- detectar_categoria(consulta, categoria)
   contexto_anterior <- contexto$turnos %||% list()
+  # Preguntas de seguimiento ("¿y en Cochabamba?") heredan la categoría del turno anterior.
+  if (!nzchar(categoria_detectada) && isTRUE(pre$es_seguimiento) && length(contexto_anterior)) {
+    previas <- vapply(contexto_anterior, function(t) texto_seguro(t$categoria), character(1))
+    previas <- previas[nzchar(previas)]
+    if (length(previas)) categoria_detectada <- previas[[length(previas)]]
+  }
+  if (identical(pre$intencion, "resumen") && !nzchar(categoria_detectada)) return(respuesta_resumen())
   es_referencial <- grepl("(^| )(esa|ese|esta|este|la primera|el primero|la segunda|el segundo|esa oferta|ese empleo)( |$)", texto_estado)
   if (!nzchar(categoria_detectada) && es_referencial) {
     seleccion_contextual <- resolver_oportunidad_contextual(consulta, contexto)
@@ -582,7 +624,7 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NUL
     return(list(respuesta = respuesta, categoria = categoria_detectada, oportunidades = list(), precios = precios, total = length(precios), filtro_fecha = ""))
   }
 
-  coincidencias <- buscar_oportunidades(consulta, categoria_detectada, limite = limite)
+  coincidencias <- buscar_oportunidades(consulta, categoria_detectada, limite = limite, pre = pre)
   categoria_respuesta <- coincidencias$categoria
   if (pedido_detalle(consulta)) {
     seleccion <- resolver_oportunidad_contextual(consulta, contexto, coincidencias$oportunidades)
@@ -608,21 +650,10 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NUL
       }, character(1))
       paste0(" de ", tolower(nombre[nzchar(nombre)][1L]))
     } else ""
-    fecha <- if (nzchar(coincidencias$fecha_tope)) paste0(" con fecha límite hasta el ", format(fecha_segura(coincidencias$fecha_tope), "%d/%m/%Y")) else ""
-    principal <- coincidencias$oportunidades[[1L]]
-    ficha <- texto_seguro(principal$titulo, "una publicación")
-    entidad <- texto_seguro(principal$entidad, texto_seguro(principal$fuente_nombre))
-    ubicacion <- texto_seguro(principal$departamento)
-    plazo <- texto_seguro(principal$fecha_limite)
-    resumen <- texto_seguro(principal$descripcion)
-    if (identical(texto_seguro(principal$confianza_extraccion), "requiere_revision")) resumen <- ""
-    resumen <- gsub("[[:space:]]+", " ", resumen)
-    if (nchar(resumen) > 240L) resumen <- paste0(substr(resumen, 1L, 237L), "…")
-    fecha_plazo <- fecha_segura(plazo)
-    rasgos <- c(if (nzchar(entidad)) paste0("de ", entidad), if (nzchar(ubicacion)) paste0("en ", ubicacion), if (!is.na(fecha_plazo)) paste0("cierre ", format(fecha_plazo, "%d/%m/%Y")))
-    respuesta <- paste0("Encontré ", coincidencias$total, " oportunidades", texto_categoria, fecha, ". La coincidencia principal es «", ficha, "»", if (length(rasgos)) paste0(" (", paste(rasgos, collapse = "; "), ")") else "", ".", if (nzchar(resumen)) paste0(" La ficha indica: ", resumen) else "", " Puedes abrir la oferta concreta o solicitar sus requisitos, ubicación y forma de postulación.")
+    terminos_frag <- tryCatch(terminos_consulta(pre$texto_busqueda), error = function(e) character())
+    respuesta <- redactar_respuesta(pre, coincidencias, terminos_frag, relajado = isTRUE(coincidencias$relajado))
   } else if (nzchar(coincidencias$fecha_tope)) {
-    respuesta <- paste0("No encontré oportunidades registradas con fecha límite hasta el ", format(fecha_segura(coincidencias$fecha_tope), "%d/%m/%Y"), ". Puedes ampliar el plazo o consultar otra categoría.")
+    respuesta <- paste0("No encontré oportunidades registradas", if (nzchar(pre$departamento)) paste0(" en ", pre$departamento) else "", " con fecha límite hasta el ", format(fecha_segura(coincidencias$fecha_tope), "%d/%m/%Y"), ". Puedes ampliar el plazo, quitar el filtro de ciudad o consultar otra categoría.")
   } else {
     if (!nzchar(coincidencias$categoria) && length(tokenizar(consulta)) <= 2L) {
       respuesta <- "Puedo ayudarte, pero necesito acotar el tema. ¿Buscas empleo, becas, compras públicas, fondos o normativa? También puedes añadir ciudad, entidad o una palabra del título."
@@ -631,7 +662,7 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NUL
         categoria <- Filter(function(x) identical(x$id, coincidencias$categoria), categorias)
         if (length(categoria)) tolower(categoria[[1L]]$nombre) else "esa categoría"
       } else "esa combinación de términos"
-      respuesta <- paste0("No encontré publicaciones vigentes que coincidan con ", tema, ". No mostraré ofertas de otro tema como si respondieran a tu pregunta. Prueba con una entidad, ciudad o término del título.")
+      respuesta <- paste0("No encontré publicaciones vigentes que coincidan con ", tema, if (nzchar(pre$departamento)) paste0(" en ", pre$departamento) else "", ". No mostraré ofertas de otro tema como si respondieran a tu pregunta. Prueba con una entidad, ciudad o término del título.")
     }
   }
   list(
@@ -640,8 +671,30 @@ respuesta_chat <- function(consulta, categoria = "", limite = 6L, contexto = NUL
     oportunidades = coincidencias$oportunidades,
     total = coincidencias$total,
     filtro_fecha = coincidencias$fecha_tope,
-    alternativa_reciente = ""
+    alternativa_reciente = "",
+    departamento = pre$departamento,
+    sugerencias = sugerencias_seguimiento(pre, coincidencias)
   )
+}
+
+# Panorama del catálogo vigente: conteo por categoría y cierres próximos.
+respuesta_resumen <- function() {
+  activas <- oportunidades_activas()
+  if (!length(activas)) {
+    return(list(respuesta = "Todavía no hay publicaciones vigentes verificadas hoy. Cuando termine la próxima revisión de fuentes podré darte un panorama completo.", categoria = "", oportunidades = list(), total = 0L, filtro_fecha = "", conversacional = TRUE, fuentes_recomendadas = fuentes_recomendadas("", 3L)))
+  }
+  cats <- vapply(activas, function(o) texto_seguro(o$categoria), character(1))
+  tabla <- sort(table(cats), decreasing = TRUE)
+  nombres <- vapply(names(tabla), function(id) if (id %in% names(NOMBRES_CATEGORIA)) NOMBRES_CATEGORIA[[id]] else id, character(1))
+  conteo <- paste0(nombres, " (", as.integer(tabla), ")", collapse = ", ")
+  fechas <- vapply(activas, function(o) { f <- fecha_segura(o$fecha_limite); if (is.na(f)) Inf else as.numeric(f) }, numeric(1))
+  proximos <- activas[order(fechas)][seq_len(min(6L, sum(is.finite(fechas))))]
+  semana <- sum(is.finite(fechas) & fechas <= as.numeric(Sys.Date() + 7))
+  texto <- paste0("Hoy hay ", length(activas), " publicaciones vigentes verificadas: ", conteo, ".")
+  if (semana > 0L) texto <- paste0(texto, "\n\n", semana, " cierran en los próximos siete días; te muestro las más cercanas.")
+  texto <- paste0(texto, "\n\nPuedes pedirme el detalle de una categoría, por ejemplo «becas en La Paz» o «empleo del Estado que cierre esta semana».")
+  list(respuesta = texto, categoria = "", oportunidades = proximos, total = length(activas), filtro_fecha = "", alternativa_reciente = "",
+       sugerencias = c("¿Cuáles cierran esta semana?", "Becas abiertas", "Empleo público en La Paz"))
 }
 
 resumen_analitico <- local({
@@ -715,9 +768,13 @@ RUTAS <- list(
          filtro_fecha = resultado$fecha_tope, oportunidades = resultado$oportunidades,
          jobs = resultado$oportunidades)
   },
-  "/api/chat" = function(q = "", limit = 6L, en_linea = "", contexto = "") {
+  "/api/chat" = function(q = "", limit = 6L, en_linea = "", contexto = "", seguimiento = "") {
     tryCatch({
       resultado <- respuesta_chat(q, limite = limit, contexto = contexto)
+      # Agente IA opcional: redacta la respuesta con los datos ya filtrados (se omite en los refrescos automáticos).
+      if (!identical(texto_seguro(seguimiento), "1") && exists("mejorar_con_agente", mode = "function")) {
+        resultado <- tryCatch(mejorar_con_agente(resultado, q, normalizar_contexto_chat(contexto)), error = function(e) { registrar_falla("agente/gancho", e); resultado })
+      }
       if (isTRUE(resultado$detalle_solicitado)) return(resultado)
       if (!is.null(resultado$vista) || isTRUE(resultado$conversacional)) return(resultado)
       worker <- iniciar_recoleccion_si_necesaria(resultado$categoria %||% "")
@@ -933,3 +990,6 @@ RUTAS <- list(
   "/api/analisis/trabajo" = function(id = "") estado_trabajo(id)
 )
 RUTAS_POST <- c("/api/admin/collect")
+
+cargar_modulo("chat_nlp.R", obligatorio = TRUE)
+cargar_modulo("agente_ia.R")

@@ -449,12 +449,641 @@
       "nombre": "Fiscalía General del Estado: convocatorias",
       "nota": "Convocatorias y procesos públicos de la Fiscalía General del Estado.",
       "oficial": true
+    },
+    {
+      "id": "min-economia",
+      "nombre": "Ministerio de Economía y Finanzas Públicas",
+      "url": "https://www.economiayfinanzas.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-trabajo",
+      "nombre": "Ministerio de Trabajo, Empleo y Previsión Social",
+      "url": "https://www.mintrabajo.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-salud",
+      "nombre": "Ministerio de Salud y Deportes",
+      "url": "https://www.minsalud.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-obras-publicas",
+      "nombre": "Ministerio de Obras Públicas, Servicios y Vivienda",
+      "url": "https://www.oopp.gob.bo/",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-hidrocarburos",
+      "nombre": "Ministerio de Hidrocarburos y Energías",
+      "url": "https://www.mhe.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-medio-ambiente",
+      "nombre": "Ministerio de Medio Ambiente y Agua",
+      "url": "https://www.mmaya.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-desarrollo-rural",
+      "nombre": "Ministerio de Desarrollo Rural y Tierras",
+      "url": "https://www.mdrt.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-desarrollo-productivo",
+      "nombre": "Ministerio de Desarrollo Productivo y Economía Plural",
+      "url": "https://www.produccion.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-culturas",
+      "nombre": "Ministerio de Culturas, Descolonización y Despatriarcalización",
+      "url": "https://www.minculturas.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-justicia",
+      "nombre": "Ministerio de Justicia y Transparencia Institucional",
+      "url": "https://www.justicia.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-gobierno",
+      "nombre": "Ministerio de Gobierno",
+      "url": "https://www.mingobierno.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-defensa",
+      "nombre": "Ministerio de Defensa",
+      "url": "https://www.mindef.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "min-mineria",
+      "nombre": "Ministerio de Minería y Metalurgia",
+      "url": "https://www.mineria.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-segip",
+      "nombre": "SEGIP: convocatorias",
+      "url": "https://www.segip.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-impuestos",
+      "nombre": "Impuestos Nacionales: convocatorias",
+      "url": "https://www.impuestos.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-aduana",
+      "nombre": "Aduana Nacional: convocatorias",
+      "url": "https://www.aduana.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-asfi",
+      "nombre": "ASFI: convocatorias",
+      "url": "https://www.asfi.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-contraloria",
+      "nombre": "Contraloría General del Estado: convocatorias",
+      "url": "https://www.contraloria.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-defensoria",
+      "nombre": "Defensoría del Pueblo: convocatorias",
+      "url": "https://www.defensoria.gob.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-banco-union",
+      "nombre": "Banco Unión: oportunidades laborales",
+      "url": "https://www.bancounion.com.bo/",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "oep-convocatorias",
+      "nombre": "Órgano Electoral Plurinacional: convocatorias",
+      "url": "https://www.oep.org.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "organo-judicial",
+      "nombre": "Órgano Judicial: convocatorias",
+      "url": "https://www.organojudicial.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fondos-bdp",
+      "nombre": "Banco de Desarrollo Productivo: financiamiento",
+      "url": "https://www.bdp.com.bo/",
+      "categoria": "fondos",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "precios-anh",
+      "nombre": "ANH: precios regulados de combustibles",
+      "url": "https://www.anh.gob.bo/",
+      "categoria": "precios",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "gam-santa-cruz",
+      "nombre": "Gobierno Autónomo Municipal de Santa Cruz: convocatorias",
+      "url": "https://gamscz.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "gam-el-alto",
+      "nombre": "Gobierno Autónomo Municipal de El Alto: convocatorias",
+      "url": "https://www.elalto.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "gam-cochabamba",
+      "nombre": "Gobierno Autónomo Municipal de Cochabamba: convocatorias",
+      "url": "https://www.cochabamba.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "gobernacion-santa-cruz",
+      "nombre": "Gobernación de Santa Cruz: convocatorias",
+      "url": "https://www.santacruz.gob.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "uto-convocatorias",
+      "nombre": "Universidad Técnica de Oruro: convocatorias",
+      "url": "https://www.uto.edu.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "uatf-convocatorias",
+      "nombre": "Universidad Autónoma Tomás Frías: convocatorias",
+      "url": "https://www.uatf.edu.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "usfx-convocatorias",
+      "nombre": "Universidad San Francisco Xavier: convocatorias",
+      "url": "https://usfx.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "uajms-convocatorias",
+      "nombre": "Universidad Autónoma Juan Misael Saracho: convocatorias",
+      "url": "https://www.uajms.edu.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "upea-convocatorias",
+      "nombre": "Universidad Pública de El Alto: convocatorias",
+      "url": "https://upea.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "umss-convocatorias",
+      "nombre": "UMSS: convocatorias institucionales",
+      "url": "https://www.umss.edu.bo/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "upb-becas",
+      "nombre": "Universidad Privada Boliviana: becas",
+      "url": "https://www.upb.edu/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-chevening",
+      "nombre": "Becas Chevening (Reino Unido) para Bolivia",
+      "url": "https://www.chevening.org/scholarship/bolivia/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-daad",
+      "nombre": "DAAD: becas para estudiar en Alemania",
+      "url": "https://www.daad.de/es/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-oea",
+      "nombre": "OEA: programa de becas",
+      "url": "https://www.oas.org/es/becas/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-fundacion-carolina",
+      "nombre": "Fundación Carolina: convocatorias de becas",
+      "url": "https://www.fundacioncarolina.es/convocatorias/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-aecid",
+      "nombre": "AECID: becas y lectorados",
+      "url": "https://www.aecid.es/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-erasmus",
+      "nombre": "Erasmus+: oportunidades de estudio y movilidad",
+      "url": "https://erasmus-plus.ec.europa.eu/es",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-campus-china",
+      "nombre": "Campus China: becas del gobierno chino",
+      "url": "https://www.campuschina.org/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-turquia",
+      "nombre": "Türkiye Burslari: becas del gobierno turco",
+      "url": "https://www.turkiyeburslari.gov.tr/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-corea-gks",
+      "nombre": "Study in Korea: becas GKS",
+      "url": "https://www.studyinkorea.go.kr/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "becas-caf",
+      "nombre": "CAF: becas y programas de formación",
+      "url": "https://www.caf.com/es/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "convocatorias-pnud",
+      "nombre": "PNUD Bolivia: convocatorias y adquisiciones",
+      "url": "https://www.undp.org/es/bolivia",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "convocatorias-unicef",
+      "nombre": "UNICEF Bolivia: convocatorias",
+      "url": "https://www.unicef.org/bolivia/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "convocatorias-fao",
+      "nombre": "FAO Bolivia: convocatorias",
+      "url": "https://www.fao.org/bolivia/es/",
+      "categoria": "convocatorias",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "contrataciones-ungm",
+      "nombre": "UNGM: licitaciones de Naciones Unidas",
+      "url": "https://www.ungm.org/Public/Notice",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fondos-banco-mundial",
+      "nombre": "Banco Mundial en Bolivia: proyectos y financiamiento",
+      "url": "https://www.bancomundial.org/es/country/bolivia",
+      "categoria": "fondos",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fondos-bid",
+      "nombre": "BID en Bolivia: proyectos y financiamiento",
+      "url": "https://www.iadb.org/es/countries/bolivia/overview",
+      "categoria": "fondos",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fondos-union-europea",
+      "nombre": "Unión Europea en Bolivia: cooperación",
+      "url": "https://www.eeas.europa.eu/bolivia_es",
+      "categoria": "fondos",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fondos-cainco",
+      "nombre": "CAINCO: programas para empresas y emprendedores",
+      "url": "https://www.cainco.org.bo/",
+      "categoria": "fondos",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "normativa-tcp",
+      "nombre": "Tribunal Constitucional Plurinacional",
+      "url": "https://www.tcpbolivia.bo/",
+      "categoria": "normativa",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "normativa-diputados",
+      "nombre": "Cámara de Diputados: leyes y proyectos",
+      "url": "https://diputados.bo/",
+      "categoria": "normativa",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "normativa-senado",
+      "nombre": "Cámara de Senadores: leyes y proyectos",
+      "url": "https://web.senado.gob.bo/",
+      "categoria": "normativa",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "empleo-computrabajo",
+      "nombre": "Computrabajo Bolivia",
+      "url": "https://bo.computrabajo.com/",
+      "categoria": "empleo_publico",
+      "habilitada": false,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
     }
   ],
   "fuentes_noticias": [
-    {"id":"noticias-lostiempos","nombre":"Los Tiempos · últimas noticias","url":"https://www.lostiempos.com/servicios/rss","feed_url":"https://www.lostiempos.com/rss/ultimas","habilitada":true},
-    {"id":"noticias-abi","nombre":"Agencia Boliviana de Información · RSS","url":"https://abi.bo/rss-abi/","feed_url":"https://abi.bo/rss-abi/","habilitada":true},
-    {"id":"noticias-opinion","nombre":"Opinión Bolivia · RSS","url":"https://www.opinion.com.bo/rss/listado/","feed_url":"https://www.opinion.com.bo/rss/listado/","habilitada":true},
-    {"id":"noticias-erbol","nombre":"ERBOL · noticias","url":"https://erbol.com.bo/","feed_url":"https://anteriorportal.erbol.com.bo/digital/rss/portada/feed","habilitada":true}
+    {
+      "id": "noticias-lostiempos",
+      "nombre": "Los Tiempos · últimas noticias",
+      "url": "https://www.lostiempos.com/servicios/rss",
+      "feed_url": "https://www.lostiempos.com/rss/ultimas",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-abi",
+      "nombre": "Agencia Boliviana de Información · RSS",
+      "url": "https://abi.bo/rss-abi/",
+      "feed_url": "https://abi.bo/rss-abi/",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-opinion",
+      "nombre": "Opinión Bolivia · RSS",
+      "url": "https://www.opinion.com.bo/rss/listado/",
+      "feed_url": "https://www.opinion.com.bo/rss/listado/",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-erbol",
+      "nombre": "ERBOL · noticias",
+      "url": "https://erbol.com.bo/",
+      "feed_url": "https://anteriorportal.erbol.com.bo/digital/rss/portada/feed",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-eldeber",
+      "nombre": "El Deber · portada",
+      "url": "https://eldeber.com.bo/",
+      "feed_url": "https://eldeber.com.bo/rss/",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-correodelsur",
+      "nombre": "Correo del Sur · portada",
+      "url": "https://correodelsur.com/",
+      "feed_url": "https://correodelsur.com/rss/",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-brujula",
+      "nombre": "Brújula Digital · portada",
+      "url": "https://www.brujuladigital.net/",
+      "feed_url": "https://www.brujuladigital.net/feed",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-unitel",
+      "nombre": "Unitel · portada",
+      "url": "https://unitel.bo/",
+      "feed_url": "https://unitel.bo/rss",
+      "habilitada": true
+    },
+    {
+      "id": "noticias-reduno",
+      "nombre": "Red Uno · portada",
+      "url": "https://www.reduno.com.bo/",
+      "feed_url": "https://www.reduno.com.bo/rss",
+      "habilitada": true
+    }
   ]
 }

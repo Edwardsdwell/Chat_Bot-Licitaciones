@@ -72,7 +72,7 @@
   t <- t[nchar(t) > 2 & !t %in% PARADAS]
   sub("(?<=.{3})(es|s)$", "", t, perl = TRUE)
 }`;
-    return tarjeta("Preprocesamiento y recuperación de información", "Pipeline aplicado antes del ranking; el código operativo está en scraping/collect.R, search/ranking.R y analisis/motor.R.",
+    return tarjeta("Preprocesamiento y recuperación de información", "Pipeline aplicado antes del ranking; el código operativo está en scraping/collect.R y analisis/motor.R.",
       h("ol", { class: "pipeline-an" },
         h("li", {}, h("b", {}, "Extracción."), " Lee HTML, feeds RSS/Atom, mapas del sitio, tablas, JSON-LD y documentos que el extractor admite; conserva título, texto, fechas, entidad y URL de origen."),
         h("li", {}, h("b", {}, "Limpieza."), " Retira etiquetas residuales, entidades HTML, saltos y espacios repetidos; limita longitud y omite navegación/ruido cuando el portal ofrece estructura interpretable."),

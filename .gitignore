@@ -8,6 +8,7 @@ logs/*.lock
 logs/estado_recoleccion.json
 .RData
 .Rhistory
+contraseñas.txt
 backend/.RData
 backend/.Rhistory
 INFORMES/*.zip

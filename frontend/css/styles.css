@@ -676,3 +676,12 @@ dialog::backdrop { background: #000c; }
 
 /* 9) Respeta la preferencia de menos movimiento en la barra de progreso. */
 @media (prefers-reduced-motion: reduce) { .barra-progreso-recoleccion::after { animation: none; display: none; } }
+
+/* 10) Chat elaborado: párrafos con saltos de línea, sugerencias de seguimiento y sello de IA. */
+.globo p.texto-respuesta { white-space: pre-line; line-height: 1.6; }
+.globo p.texto-respuesta + p.texto-respuesta { margin-top: 8px; }
+.sugerencias-chat { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sugerencias-chat button { min-height: 30px; padding: 4px 11px; border: 1px solid #5a4a42; border-radius: 999px; background: transparent; color: #e5d6c9; font-size: 11px; text-align: left; }
+.sugerencias-chat button:hover { border-color: #b7a699; background: #261f1d; color: #fff; }
+.sugerencias-chat button:focus-visible { outline: 2px solid #f1ece6; outline-offset: 2px; }
+.sello-agente { display: block; margin-top: 8px; color: var(--tenue); font-size: 10px; }

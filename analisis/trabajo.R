@@ -8,6 +8,10 @@
 #   resultado = resultado del análisis
 #   error = mensaje seguro si falla
 
+if (.Platform$OS.type == "windows" && identical(Sys.getlocale("LC_CTYPE"), "C")) {
+  suppressWarnings(Sys.setlocale("LC_CTYPE", "English_United States.utf8"))
+}
+
 `%||%` <- function(x, y) {
   if (is.null(x) || length(x) == 0L || all(is.na(x))) y else x
 }
@@ -84,11 +88,8 @@ tryCatch({
   ))
 
   # Cargar módulos después de validar argumentos.
-  archivo_ranking <- file.path(raiz, "search", "ranking.R")
   archivo_motor <- file.path(raiz, "analisis", "motor.R")
-  if (!file.exists(archivo_ranking)) stop("No se encuentra search/ranking.R.")
   if (!file.exists(archivo_motor)) stop("No se encuentra analisis/motor.R.")
-  source(archivo_ranking, local = .GlobalEnv, encoding = "UTF-8")
   source(archivo_motor, local = .GlobalEnv, encoding = "UTF-8")
 
   if (tipo == "sitio") {

@@ -4,7 +4,7 @@ El servicio Render ejecuta la aplicación completa de R: API, chat, recolección
 
 `MARK IV` es la carpeta fuente y no tiene todavía un repositorio Git propio. `Chat_Bot-Public-Services/` contiene el repositorio independiente de GitHub Pages. Para desplegar la app R en Render, conecta un repositorio cuya raíz contenga `Dockerfile` y `render.yaml`; no empujes la carpeta Pages como si fuera la raíz de MARK IV ni la anides como submódulo accidental.
 
-En una publicación unificada, el workflow raíz `.github/workflows/pages.yml` mantiene Pages como cliente estático y publica `Chat_Bot-Public-Services/`. Pages no ejecuta R; el servicio completo y las consultas en vivo se atienden desde Render.
+El repositorio independiente `Chat_Bot-Public-Services/` publica su sitio estático con su propio workflow de Pages. Pages no ejecuta R; el servicio completo y las consultas en vivo se atienden desde Render.
 
 ## Preparar el repositorio
 
