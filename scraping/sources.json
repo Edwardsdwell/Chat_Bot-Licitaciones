@@ -1,88 +1,38 @@
 {
   "fuentes": [
     {
-      "id": "fuente-01",
-      "nombre": "Monitor de licitaciones de La Paz",
-      "url": "https://www.sicoesmonitor.com/licitaciones/departamento/la-paz",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-02",
-      "nombre": "SICOES",
-      "url": "https://sicoes.gob.bo/portal/index.php",
+      "id": "fuente-012",
+      "nombre": "SICOES: convocatorias nacionales",
+      "url": "https://sicoes.gob.bo/portal/contrataciones/busqueda/convocatorias.php?tipo=convNacional&token=a716ec7b271539758cab109141643e37195edf2645f7a283b21962280d7e3a74",
       "categoria": "contrataciones",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-03",
-      "nombre": "Portal de empleo Trabajando",
-      "url": "https://trabajando.com.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": false,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Bolsa privada de empleo general; se conserva como referencia y no se clasifica como empleo del Estado."
-    },
-    {
-      "id": "fuente-04",
-      "nombre": "bolivia.com",
-      "url": "https://www.bolivia.com/",
-      "categoria": "convocatorias",
-      "habilitada": false,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Portal general de noticias, sin una sección verificable de convocatorias públicas. Se conserva como referencia."
-    },
-    {
-      "id": "fuente-05",
-      "nombre": "Banco Central de Bolivia",
-      "url": "https://registros.bcb.gob.bo/postulantes/resultados",
-      "categoria": "empleo_publico",
-      "habilitada": false,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Página de resultados del programa Jóvenes BCB, no un listado de oportunidades abiertas. Se conserva como referencia."
-    },
-    {
-      "id": "fuente-06",
-      "nombre": "Banco Central de Bolivia",
-      "url": "https://www.bcb.gob.bo/?q=licitaciones_",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). El token de la URL puede caducar; si deja de funcionar, regenerarlo desde el portal."
     },
     {
       "id": "fuente-07",
-      "nombre": "Banco Central de Bolivia",
+      "nombre": "BCB: licitaciones",
       "url": "https://www.bcb.gob.bo/?q=licitaciones-vigentes",
       "categoria": "contrataciones",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
     },
     {
       "id": "fuente-08",
-      "nombre": "Banco Central de Bolivia",
+      "nombre": "BCB: licitaciones",
       "url": "https://www.bcb.gob.bo/?q=licitacion-publica",
       "categoria": "contrataciones",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
     },
     {
       "id": "fuente-09",
-      "nombre": "contrataciones.ypfb.gob.bo",
+      "nombre": "YPFB: contrataciones publicadas",
       "url": "https://contrataciones.ypfb.gob.bo/contrataciones/publicacion",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -92,7 +42,7 @@
     },
     {
       "id": "fuente-10",
-      "nombre": "ypfbtransierra.com.bo",
+      "nombre": "YPFB Transierra: contrataciones",
       "url": "https://ypfbtransierra.com.bo/contrataciones/",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -102,7 +52,7 @@
     },
     {
       "id": "fuente-11",
-      "nombre": "www1.ypfb-andina.com.bo",
+      "nombre": "YPFB Andina: listado de licitaciones",
       "url": "https://www1.ypfb-andina.com.bo/CC/licitacion/Licitacion/frmListadoLicitacion.aspx",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -112,7 +62,7 @@
     },
     {
       "id": "fuente-12",
-      "nombre": "ende.bo",
+      "nombre": "ENDE: licitaciones vigentes",
       "url": "https://www.ende.bo/nacional-internacional/vigentes/?btn_aceptar=1",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -122,7 +72,7 @@
     },
     {
       "id": "fuente-13",
-      "nombre": "institucional.entel.bo",
+      "nombre": "ENTEL: licitaciones por fecha de publicación",
       "url": "https://institucional.entel.bo/inicio3.0/index.php/por-fecha-de-publicacion",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -132,7 +82,7 @@
     },
     {
       "id": "fuente-14",
-      "nombre": "institucional.entel.bo",
+      "nombre": "ENTEL: licitaciones vigentes",
       "url": "https://institucional.entel.bo/inicio3.0/index.php/licitaciones/licitaciones/vigentes",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -141,38 +91,48 @@
       "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
     },
     {
-      "id": "fuente-15",
-      "nombre": "Lexivox: normativa boliviana",
-      "url": "https://www.lexivox.org/norms/BO-DS-27328.html",
-      "categoria": "normativa",
+      "id": "fuente-25",
+      "nombre": "BCB: licitaciones",
+      "url": "https://www.bcb.gob.bo/webdocs/licitacionesbcb/",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+    },
+    {
+      "id": "contrataciones-ungm",
+      "nombre": "UNGM: licitaciones de Naciones Unidas",
+      "url": "https://www.ungm.org/Public/Notice",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "sigep-disposicion-bienes",
+      "nombre": "SIGEP: convocatorias de disposición de bienes",
+      "url": "https://sigep.gob.bo/procesoCompra/#/disposicionbienes/listaConvocatorias",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Lista de convocatorias de disposición de bienes. Es una aplicación dinámica (carga con JavaScript): puede requerir navegador automatizado o su API interna."
+    },
+    {
+      "id": "fuente-01",
+      "nombre": "SICOES Monitor: licitaciones de La Paz",
+      "url": "https://www.sicoesmonitor.com/licitaciones/departamento/la-paz",
+      "categoria": "contrataciones",
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-16",
-      "nombre": "lapaz.bo",
-      "url": "https://lapaz.bo/convocatorias/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-17",
-      "nombre": "sedegeslapaz.gob.bo",
-      "url": "https://www.sedegeslapaz.gob.bo/Contrataciones",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
     },
     {
       "id": "fuente-18",
-      "nombre": "Portal de licitaciones de Bolivia",
+      "nombre": "Licitaciones.com.bo: convocatorias nacionales",
       "url": "https://www.licitaciones.com.bo/convocatorias-nacionales-57.html",
       "categoria": "contrataciones",
       "habilitada": true,
@@ -181,164 +141,84 @@
       "nota": "Agregador no oficial de procesos publicados en SICOES; verificar cada convocatoria en el portal oficial."
     },
     {
-      "id": "fuente-19",
-      "nombre": "presidencia.gob.bo",
-      "url": "https://presidencia.gob.bo",
-      "categoria": "convocatorias",
+      "id": "sicoesmonitor-licitaciones",
+      "nombre": "SICOES Monitor: licitaciones",
+      "url": "https://www.sicoesmonitor.com/licitaciones",
+      "categoria": "contrataciones",
       "habilitada": true,
-      "oficial": true,
+      "oficial": false,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
     },
     {
-      "id": "fuente-20",
-      "nombre": "FM Bolivia: Gaceta",
-      "url": "https://fmbolivia.com.bo/gaceta",
-      "categoria": "normativa",
+      "id": "globaltenders-bolivia",
+      "nombre": "Global Tenders: licitaciones del gobierno de Bolivia",
+      "url": "https://www.globaltenders.com/gov-tenders/es-licitaciones-del-gobierno-bolivia",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle completo puede requerir registro."
+    },
+    {
+      "id": "sicoeshoy-bienes",
+      "nombre": "SICOES Hoy: licitaciones de bienes",
+      "url": "https://sicoeshoy.bo/licitaciones/bienes",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+    },
+    {
+      "id": "sicoeshoy-la-paz",
+      "nombre": "SICOES Hoy: licitaciones en La Paz",
+      "url": "https://sicoeshoy.bo/licitaciones/la-paz",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+    },
+    {
+      "id": "latamcompra-bolivia",
+      "nombre": "LatamCompra: licitaciones de Bolivia",
+      "url": "https://www.latamcompra.com/region/bolivia",
+      "categoria": "contrataciones",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle puede requerir registro."
+    },
+    {
+      "id": "sicoes-rupe-guia",
+      "nombre": "SICOES: guía de proveedores (RUPE)",
+      "url": "https://sicoes.gob.bo/portal/rupe/guiaProveedores.php?token=82714327565b99df7b2d91aefb302ad7a51c280bd8068f717528894d236d1fbe",
+      "categoria": "contrataciones",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Guía/instructivo de registro de proveedores, no es un listado de convocatorias. Se conserva solo como referencia. El token en la URL puede caducar."
+    },
+    {
+      "id": "vacaguzman-licitaciones-blog",
+      "nombre": "Vaca Guzmán Abogados: licitaciones públicas en Bolivia",
+      "url": "https://www.vacaguzmansilesabogados.com/2023/04/13/licitaciones-publicas-bolivia/",
+      "categoria": "contrataciones",
       "habilitada": false,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Servicio secundario de normativa sin registros publicados en la revisión; se conserva la Gaceta Oficial como fuente primaria."
+      "nota": "Artículo informativo (2023), sin listado de procesos. Solo referencia."
     },
     {
-      "id": "fuente-21",
-      "nombre": "dgesu.minedu.gob.bo",
-      "url": "https://dgesu.minedu.gob.bo",
-      "categoria": "convocatorias",
-      "habilitada": false,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "El portal requiere JavaScript y no ofrece contenido legible al recolector estático; se conserva como referencia."
-    },
-    {
-      "id": "fuente-22",
-      "nombre": "EGPP: oferta de becas",
-      "url": "https://egpp.gob.bo/oferta-de-becas/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Página institucional de la EGPP con información sobre becas y convocatorias de cooperación."
-    },
-    {
-      "id": "fuente-23",
-      "nombre": "Becas e intercambios académicos",
-      "url": "https://www.bo.emb-japan.go.jp/itpr_es/top-culture-es.html",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-24",
-      "nombre": "Becas e intercambios académicos",
-      "url": "https://www.agcid.gob.cl/becas/becas-para-extranjeros/ofertas-vigentes",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-25",
-      "nombre": "Banco Central de Bolivia",
-      "url": "https://www.bcb.gob.bo/webdocs/licitacionesbcb/",
+      "id": "tradextremadura-licitar-bolivia",
+      "nombre": "Trade Extremadura: cómo licitar en Bolivia",
+      "url": "https://www.tradextremadura.com/licitaciones/licitar-en-bolivia/",
       "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-26",
-      "nombre": "ine.gob.bo",
-      "url": "https://www.ine.gob.bo",
-      "categoria": "precios",
       "habilitada": false,
-      "oficial": true,
+      "oficial": false,
       "metodo": "automatico",
-      "nota": "Página principal del INE, no un conjunto de precios locales actuales. Se conserva como referencia estadística."
-    },
-    {
-      "id": "fuente-27",
-      "nombre": "Becas e intercambios académicos",
-      "url": "https://bo.usembassy.gov/es/education-exchanges-es/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fuente-28",
-      "nombre": "Becas e intercambios académicos",
-      "url": "https://educationusa.state.gov/find-advising-center",
-      "categoria": "becas",
-      "habilitada": false,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Directorio de centros de asesoría, no un listado de becas abiertas; se conserva como referencia."
-    },
-    {
-      "id": "fuente-29",
-      "nombre": "Becas e intercambios académicos",
-      "url": "https://overseas.mofa.go.kr/bo-es/brd/m_6038/view.do?seq=761646&page=1",
-      "categoria": "becas",
-      "habilitada": false,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Aviso específico de beca de una gestión anterior; se conserva como referencia hasta configurar el listado vigente de avisos."
-    },
-    {
-      "categoria": "normativa",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.gacetaoficialdebolivia.gob.bo/",
-      "id": "gaceta-oficial",
-      "nombre": "Gaceta Oficial del Estado Plurinacional",
-      "nota": "Publicaciones normativas oficiales.",
-      "oficial": true
-    },
-    {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://cancilleria.gob.bo/mre/convocatoria-publica/",
-      "id": "cancilleria-convocatorias",
-      "nombre": "Ministerio de Relaciones Exteriores: convocatorias",
-      "nota": "Convocatorias públicas y procesos institucionales.",
-      "oficial": true
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://becas.planificacion.gob.bo/",
-      "id": "becas-planificacion",
-      "nombre": "Becas del Ministerio de Planificación",
-      "nota": "Portal institucional de becas.",
-      "oficial": true
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://dric.umss.edu.bo/becas-y-movilidad/",
-      "id": "becas-umss",
-      "nombre": "UMSS: becas y movilidad",
-      "nota": "Becas y movilidad académica.",
-      "oficial": true
-    },
-    {
-      "categoria": "fondos",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://redunitas.org/fondos/fondo-de-pequenos-proyectos-unitas/",
-      "id": "fondos-unitas",
-      "nombre": "Red UNITAS: Fondo de Pequeños Proyectos",
-      "nota": "Financiamiento para organizaciones y proyectos.",
-      "oficial": true
+      "nota": "Guía informativa para empresas, sin listado de procesos. Solo referencia."
     },
     {
       "categoria": "empleo_publico",
@@ -348,56 +228,6 @@
       "id": "empleo-boA",
       "nombre": "Boliviana de Aviación: oportunidades de empleo",
       "nota": "Convocatorias laborales de una empresa estatal.",
-      "oficial": true
-    },
-    {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.minedu.gob.bo/index.php?Itemid=715&id=198&option=com_content&view=category",
-      "id": "minedu-convocatorias",
-      "nombre": "Ministerio de Educación: convocatorias",
-      "nota": "Convocatorias y publicaciones educativas.",
-      "oficial": true
-    },
-    {
-      "categoria": "precios",
-      "habilitada": false,
-      "metodo": "automatico",
-      "url": "https://www.ine.gob.bo/index.php/instituto/preguntas-frecuentes-estadisticas-sociales/",
-      "id": "ine-referencia-precios",
-      "nombre": "INE: referencia estadística de precios",
-      "nota": "Referencia estadística; no es una cotización comercial diaria.",
-      "oficial": true
-    },
-    {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://convocatorias.umsa.bo/web/guest",
-      "id": "umsa-convocatorias",
-      "nombre": "UMSA: convocatorias y becas",
-      "nota": "Portal institucional con convocatorias de pregrado, becas, docencia y posgrado.",
-      "oficial": true
-    },
-    {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.uagrm.edu.bo/index.php/noticias?category=anuncio",
-      "id": "uagrm-anuncios",
-      "nombre": "UAGRM: anuncios y convocatorias",
-      "nota": "Sección institucional de anuncios; publica concursos de méritos y convocatorias universitarias.",
-      "oficial": true
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://lpz.ucb.edu.bo/becas/",
-      "id": "ucb-becas-lapaz",
-      "nombre": "Universidad Católica Boliviana: becas",
-      "nota": "Información institucional sobre becas estudiantiles y convocatorias por semestre.",
       "oficial": true
     },
     {
@@ -441,379 +271,119 @@
       "oficial": true
     },
     {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://fiscalia.gob.bo/transparencia/convocatorias",
-      "id": "convocatorias-fiscalia",
-      "nombre": "Fiscalía General del Estado: convocatorias",
-      "nota": "Convocatorias y procesos públicos de la Fiscalía General del Estado.",
-      "oficial": true
-    },
-    {
-      "id": "min-economia",
-      "nombre": "Ministerio de Economía y Finanzas Públicas",
-      "url": "https://www.economiayfinanzas.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-trabajo",
-      "nombre": "Ministerio de Trabajo, Empleo y Previsión Social",
-      "url": "https://www.mintrabajo.gob.bo/",
+      "id": "fuente-015",
+      "nombre": "Trabajopolis: ofertas de los últimos 7 días",
+      "url": "https://www.trabajopolis.bo/recientes/7-dias",
       "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-salud",
-      "nombre": "Ministerio de Salud y Deportes",
-      "url": "https://www.minsalud.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-obras-publicas",
-      "nombre": "Ministerio de Obras Públicas, Servicios y Vivienda",
-      "url": "https://www.oopp.gob.bo/",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-hidrocarburos",
-      "nombre": "Ministerio de Hidrocarburos y Energías",
-      "url": "https://www.mhe.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-medio-ambiente",
-      "nombre": "Ministerio de Medio Ambiente y Agua",
-      "url": "https://www.mmaya.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-desarrollo-rural",
-      "nombre": "Ministerio de Desarrollo Rural y Tierras",
-      "url": "https://www.mdrt.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-desarrollo-productivo",
-      "nombre": "Ministerio de Desarrollo Productivo y Economía Plural",
-      "url": "https://www.produccion.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-culturas",
-      "nombre": "Ministerio de Culturas, Descolonización y Despatriarcalización",
-      "url": "https://www.minculturas.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-justicia",
-      "nombre": "Ministerio de Justicia y Transparencia Institucional",
-      "url": "https://www.justicia.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-gobierno",
-      "nombre": "Ministerio de Gobierno",
-      "url": "https://www.mingobierno.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-defensa",
-      "nombre": "Ministerio de Defensa",
-      "url": "https://www.mindef.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "min-mineria",
-      "nombre": "Ministerio de Minería y Metalurgia",
-      "url": "https://www.mineria.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-segip",
-      "nombre": "SEGIP: convocatorias",
-      "url": "https://www.segip.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-impuestos",
-      "nombre": "Impuestos Nacionales: convocatorias",
-      "url": "https://www.impuestos.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-aduana",
-      "nombre": "Aduana Nacional: convocatorias",
-      "url": "https://www.aduana.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-asfi",
-      "nombre": "ASFI: convocatorias",
-      "url": "https://www.asfi.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-contraloria",
-      "nombre": "Contraloría General del Estado: convocatorias",
-      "url": "https://www.contraloria.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-defensoria",
-      "nombre": "Defensoría del Pueblo: convocatorias",
-      "url": "https://www.defensoria.gob.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-banco-union",
-      "nombre": "Banco Unión: oportunidades laborales",
-      "url": "https://www.bancounion.com.bo/",
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "oep-convocatorias",
-      "nombre": "Órgano Electoral Plurinacional: convocatorias",
-      "url": "https://www.oep.org.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "organo-judicial",
-      "nombre": "Órgano Judicial: convocatorias",
-      "url": "https://www.organojudicial.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "fondos-bdp",
-      "nombre": "Banco de Desarrollo Productivo: financiamiento",
-      "url": "https://www.bdp.com.bo/",
-      "categoria": "fondos",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "precios-anh",
-      "nombre": "ANH: precios regulados de combustibles",
-      "url": "https://www.anh.gob.bo/",
-      "categoria": "precios",
-      "habilitada": false,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "gam-santa-cruz",
-      "nombre": "Gobierno Autónomo Municipal de Santa Cruz: convocatorias",
-      "url": "https://gamscz.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "gam-el-alto",
-      "nombre": "Gobierno Autónomo Municipal de El Alto: convocatorias",
-      "url": "https://www.elalto.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "gam-cochabamba",
-      "nombre": "Gobierno Autónomo Municipal de Cochabamba: convocatorias",
-      "url": "https://www.cochabamba.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "gobernacion-santa-cruz",
-      "nombre": "Gobernación de Santa Cruz: convocatorias",
-      "url": "https://www.santacruz.gob.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "uto-convocatorias",
-      "nombre": "Universidad Técnica de Oruro: convocatorias",
-      "url": "https://www.uto.edu.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "uatf-convocatorias",
-      "nombre": "Universidad Autónoma Tomás Frías: convocatorias",
-      "url": "https://www.uatf.edu.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "usfx-convocatorias",
-      "nombre": "Universidad San Francisco Xavier: convocatorias",
-      "url": "https://usfx.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "uajms-convocatorias",
-      "nombre": "Universidad Autónoma Juan Misael Saracho: convocatorias",
-      "url": "https://www.uajms.edu.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "upea-convocatorias",
-      "nombre": "Universidad Pública de El Alto: convocatorias",
-      "url": "https://upea.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "umss-convocatorias",
-      "nombre": "UMSS: convocatorias institucionales",
-      "url": "https://www.umss.edu.bo/",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "upb-becas",
-      "nombre": "Universidad Privada Boliviana: becas",
-      "url": "https://www.upb.edu/",
-      "categoria": "becas",
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Bolsa privada de empleo; listado de ofertas recientes."
+    },
+    {
+      "id": "trabajito-la-paz",
+      "nombre": "Trabajito: empleos en La Paz",
+      "url": "https://www.trabajito.com.bo/empleos/la-paz",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Bolsa privada de empleo; listado de ofertas en La Paz."
+    },
+    {
+      "id": "trabajito-la-paz-pasantias",
+      "nombre": "Trabajito: pasantías en La Paz",
+      "url": "https://www.trabajito.com.bo/empleos/la-paz/pasantias",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Bolsa privada de empleo; listado de pasantías en La Paz."
+    },
+    {
+      "id": "trabajito-la-paz-comercial-ventas",
+      "nombre": "Trabajito: comercial y ventas en La Paz",
+      "url": "https://www.trabajito.com.bo/empleos/la-paz/comercial-y-ventas",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "nota": "Bolsa privada de empleo; listado de ofertas comerciales y ventas en La Paz."
+    },
+    {
+      "id": "fuente-22",
+      "nombre": "EGPP: oferta de becas",
+      "url": "https://egpp.gob.bo/oferta-de-becas/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Página institucional de la EGPP con información sobre becas y convocatorias de cooperación."
+    },
+    {
+      "id": "fuente-23",
+      "nombre": "Embajada de Japón: becas y cultura",
+      "url": "https://www.bo.emb-japan.go.jp/itpr_es/top-culture-es.html",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fuente-24",
+      "nombre": "AGCID Chile: becas vigentes para extranjeros",
+      "url": "https://www.agcid.gob.cl/becas/becas-para-extranjeros/ofertas-vigentes",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "id": "fuente-27",
+      "nombre": "Embajada de EE.UU.: educación e intercambios",
+      "url": "https://bo.usembassy.gov/es/education-exchanges-es/",
+      "categoria": "becas",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+    },
+    {
+      "categoria": "becas",
+      "habilitada": true,
+      "metodo": "automatico",
+      "url": "https://becas.planificacion.gob.bo/",
+      "id": "becas-planificacion",
+      "nombre": "Becas del Ministerio de Planificación",
+      "nota": "Portal institucional de becas.",
+      "oficial": true
+    },
+    {
+      "categoria": "becas",
+      "habilitada": true,
+      "metodo": "automatico",
+      "url": "https://dric.umss.edu.bo/becas-y-movilidad/",
+      "id": "becas-umss",
+      "nombre": "UMSS: becas y movilidad",
+      "nota": "Becas y movilidad académica.",
+      "oficial": true
+    },
+    {
+      "categoria": "becas",
+      "habilitada": true,
+      "metodo": "automatico",
+      "url": "https://lpz.ucb.edu.bo/becas/",
+      "id": "ucb-becas-lapaz",
+      "nombre": "Universidad Católica Boliviana: becas",
+      "nota": "Información institucional sobre becas estudiantiles y convocatorias por semestre.",
+      "oficial": true
     },
     {
       "id": "becas-chevening",
       "nombre": "Becas Chevening (Reino Unido) para Bolivia",
       "url": "https://www.chevening.org/scholarship/bolivia/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-daad",
-      "nombre": "DAAD: becas para estudiar en Alemania",
-      "url": "https://www.daad.de/es/",
       "categoria": "becas",
       "habilitada": true,
       "oficial": true,
@@ -841,184 +411,104 @@
       "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
     },
     {
-      "id": "becas-aecid",
-      "nombre": "AECID: becas y lectorados",
-      "url": "https://www.aecid.es/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-erasmus",
-      "nombre": "Erasmus+: oportunidades de estudio y movilidad",
-      "url": "https://erasmus-plus.ec.europa.eu/es",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-campus-china",
-      "nombre": "Campus China: becas del gobierno chino",
-      "url": "https://www.campuschina.org/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-turquia",
-      "nombre": "Türkiye Burslari: becas del gobierno turco",
-      "url": "https://www.turkiyeburslari.gov.tr/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-corea-gks",
-      "nombre": "Study in Korea: becas GKS",
-      "url": "https://www.studyinkorea.go.kr/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "becas-caf",
-      "nombre": "CAF: becas y programas de formación",
-      "url": "https://www.caf.com/es/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "convocatorias-pnud",
-      "nombre": "PNUD Bolivia: convocatorias y adquisiciones",
-      "url": "https://www.undp.org/es/bolivia",
+      "id": "fuente-16",
+      "nombre": "GAM La Paz: convocatorias",
+      "url": "https://lapaz.bo/convocatorias/",
       "categoria": "convocatorias",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
     },
     {
-      "id": "convocatorias-unicef",
-      "nombre": "UNICEF Bolivia: convocatorias",
-      "url": "https://www.unicef.org/bolivia/",
+      "id": "fuente-17",
+      "nombre": "SEDES La Paz: contrataciones",
+      "url": "https://www.sedegeslapaz.gob.bo/Contrataciones",
       "categoria": "convocatorias",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
     },
     {
-      "id": "convocatorias-fao",
-      "nombre": "FAO Bolivia: convocatorias",
-      "url": "https://www.fao.org/bolivia/es/",
       "categoria": "convocatorias",
       "habilitada": true,
-      "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://cancilleria.gob.bo/mre/convocatoria-publica/",
+      "id": "cancilleria-convocatorias",
+      "nombre": "Ministerio de Relaciones Exteriores: convocatorias",
+      "nota": "Convocatorias públicas y procesos institucionales.",
+      "oficial": true
     },
     {
-      "id": "contrataciones-ungm",
-      "nombre": "UNGM: licitaciones de Naciones Unidas",
-      "url": "https://www.ungm.org/Public/Notice",
-      "categoria": "contrataciones",
+      "categoria": "convocatorias",
       "habilitada": true,
-      "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://www.minedu.gob.bo/index.php?Itemid=715&id=198&option=com_content&view=category",
+      "id": "minedu-convocatorias",
+      "nombre": "Ministerio de Educación: convocatorias",
+      "nota": "Convocatorias y publicaciones educativas.",
+      "oficial": true
     },
     {
-      "id": "fondos-banco-mundial",
-      "nombre": "Banco Mundial en Bolivia: proyectos y financiamiento",
-      "url": "https://www.bancomundial.org/es/country/bolivia",
-      "categoria": "fondos",
-      "habilitada": false,
-      "oficial": true,
+      "categoria": "convocatorias",
+      "habilitada": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://convocatorias.umsa.bo/web/guest",
+      "id": "umsa-convocatorias",
+      "nombre": "UMSA: convocatorias y becas",
+      "nota": "Portal institucional con convocatorias de pregrado, becas, docencia y posgrado.",
+      "oficial": true
     },
     {
-      "id": "fondos-bid",
-      "nombre": "BID en Bolivia: proyectos y financiamiento",
-      "url": "https://www.iadb.org/es/countries/bolivia/overview",
-      "categoria": "fondos",
-      "habilitada": false,
-      "oficial": true,
+      "categoria": "convocatorias",
+      "habilitada": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://www.uagrm.edu.bo/index.php/noticias?category=anuncio",
+      "id": "uagrm-anuncios",
+      "nombre": "UAGRM: anuncios y convocatorias",
+      "nota": "Sección institucional de anuncios; publica concursos de méritos y convocatorias universitarias.",
+      "oficial": true
     },
     {
-      "id": "fondos-union-europea",
-      "nombre": "Unión Europea en Bolivia: cooperación",
-      "url": "https://www.eeas.europa.eu/bolivia_es",
-      "categoria": "fondos",
-      "habilitada": false,
-      "oficial": true,
+      "categoria": "convocatorias",
+      "habilitada": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://fiscalia.gob.bo/transparencia/convocatorias",
+      "id": "convocatorias-fiscalia",
+      "nombre": "Fiscalía General del Estado: convocatorias",
+      "nota": "Convocatorias y procesos públicos de la Fiscalía General del Estado.",
+      "oficial": true
     },
     {
-      "id": "fondos-cainco",
-      "nombre": "CAINCO: programas para empresas y emprendedores",
-      "url": "https://www.cainco.org.bo/",
       "categoria": "fondos",
       "habilitada": true,
-      "oficial": false,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "url": "https://redunitas.org/fondos/fondo-de-pequenos-proyectos-unitas/",
+      "id": "fondos-unitas",
+      "nombre": "Red UNITAS: Fondo de Pequeños Proyectos",
+      "nota": "Financiamiento para organizaciones y proyectos.",
+      "oficial": true
     },
     {
-      "id": "normativa-tcp",
-      "nombre": "Tribunal Constitucional Plurinacional",
-      "url": "https://www.tcpbolivia.bo/",
+      "id": "gaceta-escala",
+      "nombre": "Gaceta Oficial: escalas",
+      "url": "http://www.gacetaoficialdebolivia.gob.bo/contenidos/escala",
       "categoria": "normativa",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Contenido de escalas salariales/normativas publicado por la Gaceta Oficial."
     },
     {
-      "id": "normativa-diputados",
-      "nombre": "Cámara de Diputados: leyes y proyectos",
-      "url": "https://diputados.bo/",
+      "id": "gaceta-especiales",
+      "nombre": "Gaceta Oficial: ediciones especiales",
+      "url": "http://www.gacetaoficialdebolivia.gob.bo/edicions/buscarEspeciales/11",
       "categoria": "normativa",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "normativa-senado",
-      "nombre": "Cámara de Senadores: leyes y proyectos",
-      "url": "https://web.senado.gob.bo/",
-      "categoria": "normativa",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "id": "empleo-computrabajo",
-      "nombre": "Computrabajo Bolivia",
-      "url": "https://bo.computrabajo.com/",
-      "categoria": "empleo_publico",
-      "habilitada": false,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Listado de ediciones especiales de la Gaceta Oficial."
     }
   ],
   "fuentes_noticias": [
@@ -1076,6 +566,13 @@
       "nombre": "Unitel · portada",
       "url": "https://unitel.bo/",
       "feed_url": "https://unitel.bo/rss",
+      "habilitada": true
+    },
+    {
+      "id": "fuente-013",
+      "nombre": "work",
+      "url": "https://trabajando.com.bo/trabajo",
+      "feed_url": "https://trabajando.com.bo/trabajo",
       "habilitada": true
     },
     {
