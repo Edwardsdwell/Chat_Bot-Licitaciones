@@ -24,5 +24,9 @@ services:
         value: /app/scraping/sources.json
       - key: LA_PALA_DELAY_SECONDS
         value: "8"
+      - key: LA_PALA_RECOLECCION_AUTO
+        value: "0"
+      - key: LANG
+        value: C.UTF-8
       - key: MAPACHE_ACCESS_PASSWORD
         sync: false

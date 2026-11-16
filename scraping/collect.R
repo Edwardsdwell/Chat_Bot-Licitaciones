@@ -54,8 +54,8 @@ if (!is.finite(ESPERA_MINIMA) || ESPERA_MINIMA < 8) ESPERA_MINIMA <- 8
 TIEMPO_ESPERA_SEGUNDOS <- suppressWarnings(as.numeric(Sys.getenv("LA_PALA_TIMEOUT_SECONDS", unset = "12")))
 if (!is.finite(TIEMPO_ESPERA_SEGUNDOS)) TIEMPO_ESPERA_SEGUNDOS <- 12
 TIEMPO_ESPERA_SEGUNDOS <- min(60, max(5, TIEMPO_ESPERA_SEGUNDOS))
-PAGINAS_POR_FUENTE <- suppressWarnings(as.integer(Sys.getenv("LA_PALA_MAX_PAGES", unset = "12")))
-if (is.na(PAGINAS_POR_FUENTE) || PAGINAS_POR_FUENTE < 1L) PAGINAS_POR_FUENTE <- 12L
+PAGINAS_POR_FUENTE <- suppressWarnings(as.integer(Sys.getenv("LA_PALA_MAX_PAGES", unset = "6")))
+if (is.na(PAGINAS_POR_FUENTE) || PAGINAS_POR_FUENTE < 1L) PAGINAS_POR_FUENTE <- 6L
 PAGINAS_POR_FUENTE <- min(20L, PAGINAS_POR_FUENTE)
 CATEGORIA_PRIORITARIA <- Sys.getenv("LA_PALA_CATEGORIA_PRIORITARIA", unset = "")
 # Consulta en línea: revisa solo las fuentes más relacionadas con una pregunta.
@@ -79,6 +79,36 @@ registrar <- function(..., nivel = "INFO") {
     try(cat(linea, "\n", file = file.path(DIR_LOGS, "fallas.txt"), append = TRUE), silent = TRUE)
   }
   invisible(linea)
+}
+
+# as.Date() lanza ERROR (no warning) con cadenas no reconocidas; esto evita que
+# una sola fuente tumbe la recolección ("la cadena de caracteres no está en un formato estándar").
+fecha_segura <- function(valor) {
+  valor <- as.character(valor)[1L]
+  if (is.na(valor) || !grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}", valor)) return(as.Date(NA))
+  tryCatch(as.Date(substr(valor, 1L, 10L), format = "%Y-%m-%d"), error = function(e) as.Date(NA))
+}
+
+esta_vencida <- function(limite) {
+  fecha <- fecha_segura(limite)
+  !is.na(fecha) && fecha < Sys.Date()
+}
+
+# Descarta menús de navegación, índices de sección y títulos vacíos que no son una oportunidad concreta.
+TITULOS_DE_SECCION <- paste0(
+  "^(inicio|home|buscar|busqueda|resultados|convocatorias?|noticias?|becas?|",
+  "contratacion(es)?( menores| directas| en el extranjero)?|",
+  "licitacion(es)?( publicas?)?|programa anual de contrataciones|",
+  "publicacion( omas)?|requisitos|marco normativo|compras publicas|",
+  "adquisiciones?|empleos?|ofertas laborales?|transparencia|contacto|nosotros)$"
+)
+es_texto_util <- function(titulo, descripcion = "") {
+  titulo_plano <- normalizar_texto(titulo)
+  if (nchar(titulo_plano) < 10L || grepl(TITULOS_DE_SECCION, titulo_plano)) return(FALSE)
+  inicio <- normalizar_texto(substr(as.character(descripcion), 1L, 400L))
+  if (grepl("pasar al contenido|saltar al contenido|ir al contenido|skip to (main )?content|menu principal", substr(inicio, 1L, 120L))) return(FALSE)
+  palabras_menu <- c("institucional", "historia", "mision y vision", "organigrama", "transparencia", "mapa del sitio", "directorio", "quienes somos", "politica de privacidad", "inicio")
+  sum(vapply(palabras_menu, function(w) grepl(w, inicio, fixed = TRUE), logical(1))) < 4L
 }
 
 normalizar_texto <- function(valor) {
@@ -120,14 +150,18 @@ partes_url <- function(url) {
 
 url_https_valida <- function(url) {
   partes <- partes_url(url)
-  !is.null(partes) && identical(partes$esquema, "https") && nzchar(partes$host)
+  if (is.null(partes) || !nzchar(partes$host)) return(FALSE)
+  if (identical(partes$esquema, "https")) return(TRUE)
+  # Varios portales del Estado boliviano siguen sin HTTPS: se admite HTTP solo en dominios .bo.
+  identical(partes$esquema, "http") && grepl("\\.bo$", partes$host) &&
+    !identical(Sys.getenv("LA_PALA_PERMITIR_HTTP", unset = "1"), "0")
 }
 
 mismo_dominio <- function(a, b) {
   partes_a <- partes_url(a)
   partes_b <- partes_url(b)
   !is.null(partes_a) && !is.null(partes_b) &&
-    identical(partes_a$esquema, "https") && identical(partes_b$esquema, "https") &&
+    partes_a$esquema %in% c("http", "https") && partes_b$esquema %in% c("http", "https") &&
     nzchar(partes_a$host) && identical(sub("^www\\.", "", partes_a$host), sub("^www\\.", "", partes_b$host))
 }
 
@@ -327,8 +361,14 @@ revisar_robots <- function(url) {
                    demora = ESPERA_MINIMA, mapas = character(), bloqueadas = character(), permitidas = character())
   } else if (is.null(respuesta) || codigo == 0L || codigo >= 500L || codigo %in% c(401L, 403L, 429L) || codigo < 200L || codigo >= 300L) {
     estado <- if (codigo %in% c(401L, 403L)) "bloqueado" else "no_verificable"
-    registrar("No se pudo verificar robots.txt en ", origen, " (HTTP ", codigo, if (is.null(respuesta)) "; sin respuesta: red, certificado TLS o redirección" else "", ").", nivel = "ERROR")
-    reglas <- list(permitido = FALSE, estado = estado, demora = ESPERA_MINIMA, mapas = character(), bloqueadas = character(), permitidas = character())
+    # Una caída de red, un timeout o un 5xx en robots.txt NO es una prohibición explícita.
+    # Se continúa con cautela (una sola solicitud por página, sin reintentos). 401/403/429 siguen
+    # tratándose como bloqueo. Para volver al modo estricto: LA_PALA_ROBOTS_ESTRICTO=1.
+    continuar <- !identical(Sys.getenv("LA_PALA_ROBOTS_ESTRICTO", unset = "0"), "1") && !codigo %in% c(401L, 403L, 429L)
+    registrar("No se pudo verificar robots.txt en ", origen, " (HTTP ", codigo, if (is.null(respuesta)) "; sin respuesta: red, certificado TLS o redirección" else "", ")",
+              if (continuar) "; se continúa con cautela." else ".", nivel = if (continuar) "WARN" else "ERROR")
+    reglas <- list(permitido = continuar, estado = if (continuar) "no_verificable_continuar" else estado, sin_respuesta = is.null(respuesta),
+                   demora = ESPERA_MINIMA, mapas = character(), bloqueadas = character(), permitidas = character())
   } else {
     parseadas <- parsear_robots(texto_respuesta(respuesta))
     ruta <- partes_url(url)$ruta
@@ -599,14 +639,18 @@ extraer_oportunidad <- function(documento, fuente, pagina, texto_enlace = "") {
   titulo_plano <- normalizar_texto(titulo)
   titulos_de_seccion <- paste0(
     "^(inicio|home|buscar|busqueda|resultados|convocatorias?|noticias?|becas?|",
-    "contrataciones( menores| directas| en el extranjero)?|",
-    "licitaciones?( publicas?)?|programa anual de contrataciones|",
+    "contratacion(es)?( menores| directas| en el extranjero)?|",
+    "licitacion(es)?( publicas?)?|programa anual de contrataciones|",
     "publicacion( omas)?|requisitos|marco normativo|compras publicas|",
     "adquisiciones?|empleos?|ofertas laborales?)$"
   )
   # No convertir páginas índice/sección en oportunidades individuales.
   if (grepl(titulos_de_seccion, titulo_plano)) return(NULL)
+  if (!es_texto_util(titulo, cuerpo)) return(NULL)
   fecha_limite <- extraer_fecha_limite(cuerpo)
+  # Una ficha real trae un plazo o términos propios de una convocatoria; si no, es una página informativa.
+  senal <- grepl("plazo|presupuesto|cuce|requisitos|postul|pliego|terminos de referencia|remuneracion|objeto de (la )?contratacion|monto|vacante|inscripcion|cierre", plano)
+  if (!nzchar(fecha_limite) && !senal) return(NULL)
   url_canonica <- sub("#.*$", "", pagina)
   hash <- digest::digest(paste(normalizar_texto(titulo), substr(cuerpo, 1L, 1800L)), algo = "sha256")
   list(
@@ -622,7 +666,7 @@ extraer_oportunidad <- function(documento, fuente, pagina, texto_enlace = "") {
     fecha_limite = fecha_limite,
     extraido_en = as.character(Sys.time()),
     verificado_en = as.character(Sys.time()),
-    estado = if (nzchar(fecha_limite) && as.Date(fecha_limite) < Sys.Date()) "vencida" else "abierta",
+    estado = if (esta_vencida(fecha_limite)) "vencida" else "abierta",
     url = url_canonica,
     fuente_id = as.character(fuente$id),
     fuente_nombre = as.character(fuente$nombre %||% "Fuente institucional"),
@@ -636,9 +680,10 @@ extraer_oportunidad <- function(documento, fuente, pagina, texto_enlace = "") {
 parsear_fecha_publicada <- function(texto) {
   valor <- limpiar_texto(texto, 120L)
   if (!nzchar(valor)) return("")
-  fecha_iso <- suppressWarnings(as.Date(substr(valor, 1L, 10L)))
+  fecha_iso <- fecha_segura(valor)
   if (length(fecha_iso) == 1L && !is.na(fecha_iso)) return(as.character(fecha_iso))
-  hora <- suppressWarnings(as.POSIXct(
+  # as.POSIXct() con tryFormats LANZA ERROR (no devuelve NA) si el texto no coincide con ningún formato.
+  hora <- tryCatch(suppressWarnings(as.POSIXct(
     valor,
     tz = "UTC",
     tryFormats = c(
@@ -647,7 +692,7 @@ parsear_fecha_publicada <- function(texto) {
       "%Y-%m-%dT%H:%M:%OS%z",
       "%Y-%m-%d %H:%M:%S"
     )
-  ))
+  )), error = function(e) as.POSIXct(NA))
   if (length(hora) != 1L || is.na(hora)) return("")
   as.character(as.Date(hora, tz = "UTC"))
 }
@@ -656,6 +701,7 @@ crear_oportunidad_fuente <- function(titulo, descripcion, url, fuente, publicada
   titulo <- limpiar_texto(titulo, 240L)
   descripcion <- limpiar_texto(descripcion, 1100L)
   if (!nzchar(titulo) || !url_https_valida(url) || !mismo_dominio(url, fuente$url)) return(NULL)
+  if (!es_texto_util(titulo, descripcion)) return(NULL)
   if (!nzchar(limite)) limite <- extraer_fecha_limite(descripcion)
   fecha_publicacion <- parsear_fecha_publicada(publicada)
   cuerpo_hash <- digest::digest(paste(normalizar_texto(titulo), normalizar_texto(descripcion)), algo = "sha256")
@@ -672,7 +718,7 @@ crear_oportunidad_fuente <- function(titulo, descripcion, url, fuente, publicada
     fecha_limite = limite,
     extraido_en = as.character(Sys.time()),
     verificado_en = as.character(Sys.time()),
-    estado = if (nzchar(limite) && as.Date(limite) < Sys.Date()) "vencida" else "abierta",
+    estado = if (esta_vencida(limite)) "vencida" else "abierta",
     url = sub("#.*$", "", url),
     fuente_id = as.character(fuente$id),
     fuente_nombre = as.character(fuente$nombre %||% "Fuente institucional"),
@@ -851,9 +897,12 @@ oportunidades_de_tabla <- function(documento, pagina, fuente) {
 
     textos_normalizados <- vapply(textos, normalizar_texto, character(1))
     genericas <- grepl("^(n[roº°.]?|estado|descargar|habilitados?|convocatoria|ver|detalle)$", textos_normalizados)
-    candidatos_titulo <- textos[!genericas & nchar(textos) > 8L & nchar(textos) <= 280L]
-    indices <- which(nzchar(textos) & grepl(patron, textos_normalizados, perl = TRUE))
-    titulo <- if (length(indices)) textos[indices[1L]] else if (length(candidatos_titulo)) candidatos_titulo[which.max(nchar(candidatos_titulo))] else ""
+    # Columnas que describen el tipo/estado del proceso (no su objeto) no sirven como título.
+    etiquetas_tipo <- grepl("^(bienes|servicios|obras|consultoria|consultores?|contratacion(es)?( menor| directa| simple)*|licitacion( publica)?|en presentacion.*|abierta|cerrada|vigente|publicada)$", textos_normalizados)
+    candidatos_titulo <- textos[!genericas & !etiquetas_tipo & nchar(textos) > 8L & nchar(textos) <= 280L & !grepl("^[0-9 ./-]+$", textos)]
+    # El objeto de la contratación suele ser el texto más descriptivo de la fila.
+    titulo <- if (length(candidatos_titulo)) candidatos_titulo[which.max(nchar(candidatos_titulo))] else ""
+    titulo <- sub("^[0-9]{6,}\\s+", "", titulo)
     if (!nzchar(titulo)) next
 
     oportunidad <- crear_oportunidad_fuente(titulo, texto_fila, enlaces[1L], fuente, limite = extraer_fecha_limite(texto_fila))
@@ -861,6 +910,51 @@ oportunidades_de_tabla <- function(documento, pagina, fuente) {
     if (grepl("proceso concluido|convocatoria cerrada|plazo vencido|no vigente", plano)) {
       oportunidad$estado <- "cerrada"
     }
+    resultado[[length(resultado) + 1L]] <- oportunidad
+  }
+  resultado
+}
+
+# Listados en tarjetas (article/li/div repetidos), habituales en bolsas de empleo y agregadores de licitaciones.
+# Con fuente$lista = TRUE la página entera es un listado de la categoría y no se exige coincidir con palabras clave.
+oportunidades_de_tarjetas <- function(documento, pagina, fuente) {
+  candidatos <- xml2::xml_find_all(documento, paste0(
+    "//article[not(ancestor::nav or ancestor::header or ancestor::footer or ancestor::aside)] | ",
+    "//li[.//a[@href]][not(ancestor::nav or ancestor::header or ancestor::footer or ancestor::aside)] | ",
+    "//div[contains(@class,'card') or contains(@class,'item') or contains(@class,'job') or contains(@class,'oferta') or ",
+    "contains(@class,'licit') or contains(@class,'result') or contains(@class,'listing') or contains(@class,'post') or contains(@class,'row-')]",
+    "[not(ancestor::nav or ancestor::header or ancestor::footer or ancestor::aside)]"
+  ))
+  if (!length(candidatos)) return(list())
+  es_lista <- isTRUE(fuente$lista %||% FALSE)
+  patron <- patrones_categoria[[as.character(fuente$categoria)]] %||% "convocatoria|oportunidad"
+  vistos <- character(); resultado <- list()
+  for (nodo in candidatos) {
+    enlaces_nodo <- xml2::xml_find_all(nodo, ".//a[@href]")
+    if (length(enlaces_nodo) < 1L || length(enlaces_nodo) > 4L) next
+    texto <- limpiar_texto(xml2::xml_text(nodo), 1600L)
+    if (nchar(texto) < 40L || nchar(texto) > 1200L) next
+    if (!es_lista && !grepl(patron, normalizar_texto(texto), perl = TRUE)) next
+    titulo <- ""
+    encabezado <- xml2::xml_find_first(nodo, ".//h1 | .//h2 | .//h3 | .//h4 | .//h5 | .//*[contains(@class,'title') or contains(@class,'titulo')]")
+    if (!inherits(encabezado, "xml_missing")) titulo <- limpiar_texto(xml2::xml_text(encabezado), 240L)
+    hrefs <- xml2::xml_attr(enlaces_nodo, "href")
+    textos_enlace <- vapply(enlaces_nodo, function(a) limpiar_texto(xml2::xml_text(a), 240L), character(1))
+    absolutos <- vapply(hrefs, url_absoluta, character(1), base = pagina)
+    validos <- which(nzchar(absolutos) & vapply(absolutos, function(u) nzchar(u) && mismo_dominio(u, pagina), logical(1)) &
+                       !grepl("\\.(jpg|jpeg|png|gif|svg|css|js)(\\?|$)", tolower(absolutos)))
+    if (!length(validos)) next
+    if (!nzchar(titulo)) {
+      largos <- validos[nchar(textos_enlace[validos]) >= 12L]
+      titulo <- if (length(largos)) textos_enlace[largos[which.max(nchar(textos_enlace[largos]))]] else ""
+    }
+    if (!nzchar(titulo)) next
+    coincide <- validos[normalizar_texto(textos_enlace[validos]) == normalizar_texto(titulo)]
+    destino <- sub("#.*$", "", absolutos[if (length(coincide)) coincide[1L] else validos[1L]])
+    if (identical(sub("/$", "", destino), sub("/$", "", sub("#.*$", "", pagina))) || destino %in% vistos) next
+    oportunidad <- crear_oportunidad_fuente(titulo, texto, destino, fuente, entidad = as.character(fuente$nombre %||% ""))
+    if (is.null(oportunidad)) next
+    vistos <- c(vistos, destino)
     resultado[[length(resultado) + 1L]] <- oportunidad
   }
   resultado
@@ -961,12 +1055,15 @@ recopilar_fuente <- function(fuente, publicar = function(oportunidades = list(),
   categoria <- as.character(fuente$categoria)
   metodo <- tolower(as.character(fuente$metodo %||% "automatico"))
   registrar("Fuente: ", fuente$nombre %||% url)
+  if (metodo %in% c("navegador", "js")) {
+    return(list(id = fuente$id, url = url, estado = "omitida", motivo = "requiere_javascript (portal dinámico: necesita navegador o su API)", oportunidades = list(), precios = list(), revisadas = 0L))
+  }
   reglas <- revisar_robots(url)
   if (!isTRUE(reglas$permitido)) {
     return(list(id = fuente$id, url = url, estado = "omitida", motivo = paste("robots.txt", reglas$estado), oportunidades = list(), precios = list(), revisadas = 0L))
   }
 
-  respuesta <- obtener(url)
+  respuesta <- obtener(url, intento = if (isTRUE(reglas$sin_respuesta)) 3L else 1L)
   codigo <- codigo_respuesta(respuesta)
   if (is.null(respuesta) || codigo < 200L || codigo >= 400L) {
     return(list(id = fuente$id, url = url, estado = "no_disponible", motivo = paste("HTTP", codigo), oportunidades = list(), precios = list(), revisadas = 0L))
@@ -1044,13 +1141,18 @@ recopilar_fuente <- function(fuente, publicar = function(oportunidades = list(),
   }
 
   oportunidades <- oportunidades_de_tabla(documento, url, fuente)
+  if (length(oportunidades) < 3L) {
+    tarjetas <- tryCatch(oportunidades_de_tarjetas(documento, url, fuente), error = function(e) list())
+    if (length(tarjetas) >= 3L) oportunidades <- c(oportunidades, tarjetas)
+  }
+  lista_completa <- isTRUE(fuente$lista %||% FALSE) && length(oportunidades) >= 5L
   precios <- if (identical(categoria, "precios")) extraer_productos(documento, fuente, url) else list()
   publicar(oportunidades, precios)
   if (identical(categoria, "precios")) {
     return(list(id = fuente$id, url = url, estado = if (length(precios)) "revisada" else "sin_datos_estructurados", motivo = "", oportunidades = list(), precios = precios, revisadas = 1L))
   }
 
-  enlaces <- head(enlaces_html(documento, url, categoria), PAGINAS_POR_FUENTE)
+  enlaces <- if (lista_completa) character() else head(enlaces_html(documento, url, categoria), PAGINAS_POR_FUENTE)
   revisadas <- 1L
 
   if (metodo %in% c("automatico", "auto")) {
@@ -1070,7 +1172,7 @@ recopilar_fuente <- function(fuente, publicar = function(oportunidades = list(),
 
   # El mapa del sitio es un complemento cuando el listado ofrece pocos enlaces;
   # evita repetir solicitudes costosas en portales con tablas ya completas.
-  if (length(enlaces) < min(3L, PAGINAS_POR_FUENTE)) {
+  if (!lista_completa && length(enlaces) < min(3L, PAGINAS_POR_FUENTE)) {
     enlaces <- unique(c(enlaces, enlaces_mapa(url, reglas, categoria)))
   }
   enlaces <- head(enlaces, PAGINAS_POR_FUENTE)
@@ -1092,7 +1194,7 @@ recopilar_fuente <- function(fuente, publicar = function(oportunidades = list(),
     id = fuente$id,
     url = url,
     estado = if (length(oportunidades) || length(precios)) "revisada_con_datos" else "revisada_sin_datos",
-    motivo = if (!length(enlaces)) "No se detectaron enlaces compatibles; no se generaron resultados." else "",
+    motivo = if (!length(enlaces) && !length(oportunidades)) "No se detectaron enlaces compatibles; no se generaron resultados." else "",
     oportunidades = oportunidades,
     precios = precios,
     revisadas = revisadas
@@ -1165,16 +1267,20 @@ conservar_catalogo <- function(catalogo) {
       item$estado <- "por_verificar"
     }
     if (identical(texto_seguro(item$estado), "cerrada")) {
-      marca <- suppressWarnings(as.Date(substr(item$verificado_en %||% "", 1L, 10L)))
+      marca <- fecha_segura(item$verificado_en %||% "")
       if (!is.na(marca) && marca < hoy - 7) return(NULL)
     }
     item
   })
   oportunidades <- Filter(Negate(is.null), oportunidades)
   precios <- Filter(function(item) {
-    fecha <- suppressWarnings(as.Date(item$observado_en %||% ""))
+    fecha <- fecha_segura(item$observado_en %||% "")
     !is.na(fecha) && fecha >= hoy - 365
   }, catalogo$observaciones_precios %||% list())
+  oportunidades <- Filter(function(item) {
+    identical(texto_seguro(item$categoria), "normativa") ||
+      isTRUE(tryCatch(es_texto_util(texto_seguro(item$titulo), texto_seguro(item$descripcion)), error = function(e) TRUE))
+  }, oportunidades)
   catalogo$oportunidades <- oportunidades
   catalogo$observaciones_precios <- precios
   catalogo
@@ -1419,7 +1525,7 @@ ejecutar_recoleccion_diaria <- function(fuentes_archivo = ARCHIVO_FUENTES, catal
     pendientes <- head(pendientes, 40L)
     for (indice in pendientes) {
       item <- oportunidades[[indice]]
-      limite <- suppressWarnings(as.Date(item$fecha_limite %||% ""))
+      limite <- fecha_segura(item$fecha_limite %||% "")
       verificacion <- tryCatch(verificar_publicacion(item, fuentes), error = function(e) list(estado = "por_verificar", confirmado = FALSE))
       item$estado <- verificacion$estado
       if (identical(item$estado, "abierta") && !is.na(limite) && limite < Sys.Date()) item$estado <- "vencida"

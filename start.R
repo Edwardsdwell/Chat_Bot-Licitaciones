@@ -173,8 +173,15 @@ programar_siguiente_recoleccion <- function() {
   }, delay = segundos_hasta_manana())
 }
 
-later::later(iniciar_recoleccion, delay = 5)
-programar_siguiente_recoleccion()
+# En Render gratis el servicio se duerme y despierta continuamente: cada despertar lanzaba una
+# recolección completa (más de una hora de trabajo y mucha RAM). Con LA_PALA_RECOLECCION_AUTO=0
+# la app solo sirve el catálogo; la recolección corre en GitHub Actions (.github/workflows/recolectar.yml).
+if (!identical(Sys.getenv("LA_PALA_RECOLECCION_AUTO", unset = "1"), "0")) {
+  later::later(iniciar_recoleccion, delay = 5)
+  programar_siguiente_recoleccion()
+} else {
+  message("Recolección automática desactivada (LA_PALA_RECOLECCION_AUTO=0).")
+}
 
 if (anfitrion %in% c("127.0.0.1", "localhost") &&
     Sys.getenv("LA_PALA_OPEN_BROWSER", unset = "1") != "0") {

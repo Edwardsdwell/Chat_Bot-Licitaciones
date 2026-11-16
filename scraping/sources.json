@@ -8,7 +8,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). El token de la URL puede caducar; si deja de funcionar, regenerarlo desde el portal."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). El token de la URL puede caducar; si deja de funcionar, regenerarlo desde el portal.",
+      "lista": true
     },
     {
       "id": "fuente-07",
@@ -38,7 +39,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-10",
@@ -48,7 +50,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-11",
@@ -58,7 +61,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-12",
@@ -68,7 +72,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-13",
@@ -78,7 +83,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-14",
@@ -88,7 +94,8 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "fuente-25",
@@ -108,17 +115,18 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia.",
+      "lista": true
     },
     {
       "id": "sigep-disposicion-bienes",
       "nombre": "SIGEP: convocatorias de disposición de bienes",
       "url": "https://sigep.gob.bo/procesoCompra/#/disposicionbienes/listaConvocatorias",
       "categoria": "contrataciones",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
-      "metodo": "automatico",
-      "nota": "Lista de convocatorias de disposición de bienes. Es una aplicación dinámica (carga con JavaScript): puede requerir navegador automatizado o su API interna."
+      "metodo": "navegador",
+      "nota": "Aplicación dinámica (JavaScript): no se puede leer con httr. Requiere navegador automatizado o su API interna. Deshabilitada hasta tener extractor."
     },
     {
       "id": "fuente-01",
@@ -128,7 +136,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
+      "lista": true
     },
     {
       "id": "fuente-18",
@@ -138,7 +147,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Agregador no oficial de procesos publicados en SICOES; verificar cada convocatoria en el portal oficial."
+      "nota": "Agregador no oficial de procesos publicados en SICOES; verificar cada convocatoria en el portal oficial.",
+      "lista": true
     },
     {
       "id": "sicoesmonitor-licitaciones",
@@ -148,7 +158,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
+      "lista": true
     },
     {
       "id": "globaltenders-bolivia",
@@ -158,7 +169,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle completo puede requerir registro."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle completo puede requerir registro.",
+      "lista": true
     },
     {
       "id": "sicoeshoy-bienes",
@@ -168,7 +180,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
+      "lista": true
     },
     {
       "id": "sicoeshoy-la-paz",
@@ -178,7 +191,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
+      "lista": true
     },
     {
       "id": "latamcompra-bolivia",
@@ -188,7 +202,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle puede requerir registro."
+      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle puede requerir registro.",
+      "lista": true
     },
     {
       "id": "sicoes-rupe-guia",
@@ -278,7 +293,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas recientes."
+      "nota": "Bolsa privada de empleo; listado de ofertas recientes.",
+      "lista": true
     },
     {
       "id": "trabajito-la-paz",
@@ -288,7 +304,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas en La Paz."
+      "nota": "Bolsa privada de empleo; listado de ofertas en La Paz.",
+      "lista": true
     },
     {
       "id": "trabajito-la-paz-pasantias",
@@ -298,7 +315,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de pasantías en La Paz."
+      "nota": "Bolsa privada de empleo; listado de pasantías en La Paz.",
+      "lista": true
     },
     {
       "id": "trabajito-la-paz-comercial-ventas",
@@ -308,7 +326,8 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas comerciales y ventas en La Paz."
+      "nota": "Bolsa privada de empleo; listado de ofertas comerciales y ventas en La Paz.",
+      "lista": true
     },
     {
       "id": "fuente-22",
