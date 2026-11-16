@@ -1,46 +1,54 @@
 {
+  "_meta": {
+    "version": "2026-11-16",
+    "descripcion": "Catálogo de fuentes del Chat_Bot-Licitaciones. fuentes = listados verificados o por verificar; fuentes_noticias = feeds RSS; descartadas = bajas con su motivo (no se procesan).",
+    "campos": {
+      "lista": "true si la página muestra un listado repetitivo de ítems extraíble; false si es página única/informativa o el listado va en PDF.",
+      "verificado": "ok = abierta y leída el 2026-11-16 | parcial = confirmada solo por el buscador | pendiente = no se pudo abrir en esta revisión | requiere_navegador = el listado se carga con JavaScript.",
+      "formato": "html_tabla | html_cards | html_bloques | html_links | rss | pdf_embebido | spa_js",
+      "habilitada": "true solo para fuentes con verificado ok/parcial. Las pendientes quedan en false hasta que el primer ciclo las confirme."
+    },
+    "fecha_verificacion": "2026-11-16"
+  },
   "fuentes": [
     {
       "id": "fuente-012",
-      "nombre": "SICOES: convocatorias nacionales",
+      "nombre": "SICOES: convocatorias nacionales (portal oficial)",
       "url": "https://sicoes.gob.bo/portal/contrataciones/busqueda/convocatorias.php?tipo=convNacional&token=a716ec7b271539758cab109141643e37195edf2645f7a283b21962280d7e3a74",
       "categoria": "contrataciones",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
-      "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). El token de la URL puede caducar; si deja de funcionar, regenerarlo desde el portal.",
-      "lista": true
+      "metodo": "navegador",
+      "lista": false,
+      "formato": "spa_js",
+      "verificado": "requiere_navegador",
+      "nota": "Con la URL tokenizada el portal redirige a index.php (token caducado o listado cargado por formulario/POST). El inicio solo muestra contadores (Bienes, Obras, Servicios, Consultoría). Usar SICOES Monitor (fuente-01) como espejo hasta tener extractor con navegador."
     },
     {
       "id": "fuente-07",
-      "nombre": "BCB: licitaciones",
+      "nombre": "BCB: licitaciones vigentes",
       "url": "https://www.bcb.gob.bo/?q=licitaciones-vigentes",
       "categoria": "contrataciones",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
-    },
-    {
-      "id": "fuente-08",
-      "nombre": "BCB: licitaciones",
-      "url": "https://www.bcb.gob.bo/?q=licitacion-publica",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "ok",
+      "nota": "Drupal 7. Bloques separados por <hr>: Código, CUCE, título (enlace a /?q=content/...), 'Fecha de publicación convocatoria y DBC SICOES', 'Fecha y hora de presentación de propuestas' (ej. 'Miércoles, 18 Noviembre, 2026 - 15:00', en español), enlaces DBC/Convocatoria (.docx/.pdf) y encargado. Paginación ?page=N (0-indexado: page=1 es la página 2). Incluye procesos ya vencidos: filtrar por fecha de presentación. Para históricos usar ?q=licitacion-publica&qt-licitacion_p_blica=1."
     },
     {
       "id": "fuente-09",
       "nombre": "YPFB: contrataciones publicadas",
       "url": "https://contrataciones.ypfb.gob.bo/contrataciones/publicacion",
       "categoria": "contrataciones",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
+      "metodo": "navegador",
+      "lista": false,
+      "formato": "spa_js",
+      "verificado": "requiere_navegador",
+      "nota": "Solo se renderiza el buscador (gestión, modalidad, tipo, fechas). Los resultados no vienen en el HTML inicial; se cargan al buscar (probable XHR). Habilitar cuando exista extractor con navegador o se identifique el endpoint interno."
     },
     {
       "id": "fuente-10",
@@ -50,8 +58,10 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "WordPress (plugin ypfb-files-directory). Cada fila: número (ej. 5000006166), descripción, tipo (Bienes/Servicios), modalidad (Contratación menor, Contratación menor simple, Licitación), estado ('En presentación de ofertas' / 'Proceso adjudicado'), fecha de publicación en texto ('10 de noviembre de 2026') y enlaces de descarga (.zip/.pdf en /wp-content/uploads/). Paginación /contrataciones/page/N/ (20 páginas). Ojo: 'En presentación de ofertas' puede persistir en procesos antiguos."
     },
     {
       "id": "fuente-11",
@@ -61,8 +71,10 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "ASP.NET WebForms. La tabla de la primera carga trae ~48 filas con columnas Código Proceso (ANDI-GSI-095-2026), Título, Fecha de publicación (dd/mm/aaaa) y Estado ('Publicada'/'Finalizada'); la columna DBC no trae enlace en el HTML inicial. Los filtros (gestión, estado, fechas) son postback: para ver más hay que enviar __VIEWSTATE. El contador 'Mostrando 1-10 de 0' es un artefacto del DataTable, ignorarlo. Los <select> traen miles de códigos históricos: no usarlos como fuente de ítems."
     },
     {
       "id": "fuente-12",
@@ -72,19 +84,10 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
-    },
-    {
-      "id": "fuente-13",
-      "nombre": "ENTEL: licitaciones por fecha de publicación",
-      "url": "https://institucional.entel.bo/inicio3.0/index.php/por-fecha-de-publicacion",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Tarjetas con: Código (ENDE-LP(S)-2026-011), Publicado ('05/Nov/2026', mes abreviado en español), título (h5), Proyecto, Objeto, Presentación de Propuestas (ISO aaaa-mm-dd), Financiador, Observaciones y archivos (/public/licitaciones/*.docx|pdf). 110 registros, 11 páginas: ?btn_aceptar=1&page=N. El parámetro btn_aceptar=1 es necesario (aviso previo). Incluye procesos con propuestas ya vencidas y alguna con resolución de cancelación: filtrar por fecha. Históricos en /nacional-internacional/concluidos."
     },
     {
       "id": "fuente-14",
@@ -94,29 +97,23 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
-    },
-    {
-      "id": "fuente-25",
-      "nombre": "BCB: licitaciones",
-      "url": "https://www.bcb.gob.bo/webdocs/licitacionesbcb/",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace)."
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "ok",
+      "nota": "Joomla (blog de categoría). Cada ítem: fecha-hora de publicación ('Viernes, 13 Noviembre 2026 12:14'), título h3 con enlace a /item/NNNN-slug, adjuntos (INVITACIÓN, ESPECIFICACIONES TÉCNICAS vía /item/download/...). Predominan 'Cotización Simple'. Paginación ?start=14,28,... (14 por página; 95 páginas, la mayoría histórica: procesar solo las primeras). Mejor opción: feed RSS en la misma URL con ?format=feed. No trae fecha límite en el listado: abrir el ítem."
     },
     {
       "id": "contrataciones-ungm",
       "nombre": "UNGM: licitaciones de Naciones Unidas",
       "url": "https://www.ungm.org/Public/Notice",
       "categoria": "contrataciones",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia.",
-      "lista": true
+      "metodo": "navegador",
+      "lista": false,
+      "formato": "spa_js",
+      "verificado": "requiere_navegador",
+      "nota": "El HTML trae solo el formulario de filtros (organización, país beneficiario 'Bolivia', tipo de aviso) y 'No procurement opportunity was found'; los resultados llegan por JavaScript. Requiere navegador o el endpoint interno de búsqueda."
     },
     {
       "id": "sigep-disposicion-bienes",
@@ -126,7 +123,10 @@
       "habilitada": false,
       "oficial": true,
       "metodo": "navegador",
-      "nota": "Aplicación dinámica (JavaScript): no se puede leer con httr. Requiere navegador automatizado o su API interna. Deshabilitada hasta tener extractor."
+      "lista": false,
+      "formato": "spa_js",
+      "verificado": "requiere_navegador",
+      "nota": "Aplicación dinámica (JavaScript, ruta con #/): no se puede leer con httr. Requiere navegador automatizado o su API interna. Deshabilitada hasta tener extractor."
     },
     {
       "id": "fuente-01",
@@ -136,30 +136,23 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
-      "lista": true
-    },
-    {
-      "id": "fuente-18",
-      "nombre": "Licitaciones.com.bo: convocatorias nacionales",
-      "url": "https://www.licitaciones.com.bo/convocatorias-nacionales-57.html",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Agregador no oficial de procesos publicados en SICOES; verificar cada convocatoria en el portal oficial.",
-      "lista": true
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Espejo no oficial de SICOES (Ribentek). Tabla con columnas CUCE, OBJETO/ENTIDAD (objeto y entidad separados por <br>), TIPO (Bienes/Obras/Servicios Generales/Consultoria) y CIERRE (dd/mm/aaaa). Sin paginación (24 procesos al 15-nov-2026). El enlace de cada fila apunta al listado general de SICOES, no al proceso: usar el CUCE como clave. Misma plantilla en /licitaciones/departamento/{santa-cruz,cochabamba,oruro,potosi,tarija,chuquisaca,beni,pando} (no verificadas una a una)."
     },
     {
       "id": "sicoesmonitor-licitaciones",
-      "nombre": "SICOES Monitor: licitaciones",
+      "nombre": "SICOES Monitor: licitaciones (nacional)",
       "url": "https://www.sicoesmonitor.com/licitaciones",
       "categoria": "contrataciones",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
-      "lista": true
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "La tabla funciona (CUCE, objeto/entidad, tipo, cierre) pero la página nacional estaba desactualizada: 'Última actualización 26 de octubre de 2026' (525 vigentes) y todos los cierres visibles eran anteriores al 06-nov. Deshabilitada; usar las páginas por departamento (fuente-01). Reactivar si vuelve a actualizarse a diario."
     },
     {
       "id": "globaltenders-bolivia",
@@ -169,8 +162,10 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle completo puede requerir registro.",
-      "lista": true
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "ok",
+      "nota": "Agregador externo (2.235 avisos vivos). 20 ítems por página, cada uno con título (traducido automáticamente al inglés, ej. 'Acquisition Of Reagents For ...'), país, fecha de publicación y cierre ('15 Nov 2026'), y enlace 'View Detail' a /tender-detail/<slug-id>. La paginación enlaza a /global-tenders-search (no a la misma URL). Títulos poco fiables: verificar la convocatoria en SICOES con el objeto."
     },
     {
       "id": "sicoeshoy-bienes",
@@ -180,121 +175,75 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
-      "lista": true
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Muestra pública rotativa: 40 procesos de 1.732 vigentes (2,3 %), cambia en cada visita; el listado completo exige registro. Tabla con CUCE, rubro, departamento, entidad, objeto, publicación, presentación (dd/mm/aaaa), plazo restante, presupuesto (Bs) y financiador. Útil como complemento, no como cobertura completa."
     },
     {
-      "id": "sicoeshoy-la-paz",
-      "nombre": "SICOES Hoy: licitaciones en La Paz",
-      "url": "https://sicoeshoy.bo/licitaciones/la-paz",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace).",
-      "lista": true
-    },
-    {
-      "id": "latamcompra-bolivia",
-      "nombre": "LatamCompra: licitaciones de Bolivia",
-      "url": "https://www.latamcompra.com/region/bolivia",
-      "categoria": "contrataciones",
-      "habilitada": true,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Página de listado: se extraen los ítems publicados (título, entidad, fecha, enlace). Agregador externo; el detalle puede requerir registro.",
-      "lista": true
-    },
-    {
-      "id": "sicoes-rupe-guia",
-      "nombre": "SICOES: guía de proveedores (RUPE)",
-      "url": "https://sicoes.gob.bo/portal/rupe/guiaProveedores.php?token=82714327565b99df7b2d91aefb302ad7a51c280bd8068f717528894d236d1fbe",
+      "id": "ende-expresiones-interes",
+      "nombre": "ENDE: expresiones de interés vigentes",
+      "url": "https://www.ende.bo/expresiones-de-interes/vigentes",
       "categoria": "contrataciones",
       "habilitada": false,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Guía/instructivo de registro de proveedores, no es un listado de convocatorias. Se conserva solo como referencia. El token en la URL puede caducar."
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "pendiente",
+      "nota": "Enlace visto en el menú de ende.bo; no se abrió. Probablemente misma plantilla que fuente-12 (agregar ?btn_aceptar=1). Probar en el primer ciclo."
     },
     {
-      "id": "vacaguzman-licitaciones-blog",
-      "nombre": "Vaca Guzmán Abogados: licitaciones públicas en Bolivia",
-      "url": "https://www.vacaguzmansilesabogados.com/2023/04/13/licitaciones-publicas-bolivia/",
-      "categoria": "contrataciones",
-      "habilitada": false,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Artículo informativo (2023), sin listado de procesos. Solo referencia."
-    },
-    {
-      "id": "tradextremadura-licitar-bolivia",
-      "nombre": "Trade Extremadura: cómo licitar en Bolivia",
-      "url": "https://www.tradextremadura.com/licitaciones/licitar-en-bolivia/",
-      "categoria": "contrataciones",
-      "habilitada": false,
-      "oficial": false,
-      "metodo": "automatico",
-      "nota": "Guía informativa para empresas, sin listado de procesos. Solo referencia."
-    },
-    {
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.boa.gob.bo/oportunidad-de-empleo/",
-      "id": "empleo-boA",
-      "nombre": "Boliviana de Aviación: oportunidades de empleo",
-      "nota": "Convocatorias laborales de una empresa estatal.",
-      "oficial": true
-    },
-    {
-      "categoria": "empleo_publico",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.aben.gob.bo/oportunidad-de-empleo/",
       "id": "empleo-aben",
       "nombre": "ABEN: oportunidades de empleo",
-      "nota": "Convocatorias de empleo de la Agencia Boliviana de Energía Nuclear.",
-      "oficial": true
-    },
-    {
+      "url": "https://www.aben.gob.bo/oportunidad-de-empleo/",
       "categoria": "empleo_publico",
       "habilitada": true,
+      "oficial": true,
       "metodo": "automatico",
-      "url": "https://www.sernap.gob.bo/index.php/oportunidad-de-empleo/",
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Plantilla gob_bo (WordPress). Tabla: Nro, Tipo de contratación, Puesto, Cantidad, Formación, Experiencia, Actividades, Fecha de cierre (dd/mm/aaaa) y enlace al PDF. Sin columna de estado: decidir vigencia por fecha de cierre. Al 16-nov-2026 las 3 convocatorias ya estaban vencidas (la última cerró el 02/10/2026): publica pocas veces al año."
+    },
+    {
       "id": "empleo-sernap",
       "nombre": "SERNAP: oportunidades de empleo",
-      "nota": "Convocatorias de personal del Servicio Nacional de Áreas Protegidas.",
-      "oficial": true
-    },
-    {
+      "url": "https://www.sernap.gob.bo/index.php/oportunidad-de-empleo/",
       "categoria": "empleo_publico",
       "habilitada": true,
+      "oficial": true,
       "metodo": "automatico",
-      "url": "https://covipol.gob.bo/index.php/oportunidad-de-empleo/",
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Plantilla gob_bo. Tabla con Nro, Tipo (Personal de planta/eventual), Puesto, Cantidad, Fecha de cierre, Estado ('Vigente', 'Cerrada', 'Sin Efecto' o vacío) y enlace al PDF de la convocatoria. Filtrar Estado == 'Vigente'. Paginación /oportunidad-de-empleo/page/N/ (5 páginas). Al 16-nov-2026 había 3 vigentes (guardaparques)."
+    },
+    {
       "id": "empleo-covipol",
       "nombre": "COVIPOL: oportunidades de empleo",
-      "nota": "Convocatorias institucionales de personal del Consejo Nacional de Vivienda Policial.",
-      "oficial": true
-    },
-    {
+      "url": "https://covipol.gob.bo/index.php/oportunidad-de-empleo/",
       "categoria": "empleo_publico",
       "habilitada": true,
+      "oficial": true,
       "metodo": "automatico",
-      "url": "https://censoagropecuario.ine.gob.bo/index.php/convocatorias/convocatorias-de-personal/",
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Plantilla gob_bo. Una sola convocatoria (CONTADOR, personal permanente), cerrada el 03/09/2026. Columnas como empleo-aben; enlaces al formulario de postulación (.docx) y al PDF. Publica muy poco: sin ofertas vigentes al 16-nov-2026."
+    },
+    {
       "id": "empleo-ine-censo-agropecuario",
       "nombre": "INE: convocatorias del Censo Agropecuario",
-      "nota": "Convocatorias de personal para operaciones estadísticas del INE.",
-      "oficial": true
-    },
-    {
-      "id": "fuente-015",
-      "nombre": "Trabajopolis: ofertas de los últimos 7 días",
-      "url": "https://www.trabajopolis.bo/recientes/7-dias",
+      "url": "https://censoagropecuario.ine.gob.bo/index.php/convocatorias/convocatorias-de-personal/",
       "categoria": "empleo_publico",
       "habilitada": true,
-      "oficial": false,
+      "oficial": true,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas recientes.",
-      "lista": true
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "WordPress (tema de bloques). Cada tarjeta: imagen, título (h4, enlace a /AAAA/MM/DD/slug/), fecha ('septiembre 29, 2026') y extracto. La fecha de publicación va también en la URL del ítem. La postulación real es una SPA aparte: https://censoagro.ine.gob.bo/#/. Ojo: la tarjeta no indica fecha de cierre; abrir el enlace."
     },
     {
       "id": "trabajito-la-paz",
@@ -304,8 +253,10 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas en La Paz.",
-      "lista": true
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Bolsa privada. 85 ofertas, 20 por página; paginación ?page=N. Cada tarjeta: título (h4 con enlace /trabajo/la-paz/<slug>-<ID4>), empresa (alt del logo), categoría, ciudad, fecha dd/mm/aaaa, salario opcional ('Acuerdo salarial' o 'Bs.3.300 - Bs.3.500') y modalidad (Tiempo completo/Pasantía/Temporal). El código de 4 caracteres final de la URL identifica la oferta: usarlo para deduplicar entre las tres páginas de Trabajito. Mezcla ofertas 'Destacado' fuera de orden cronológico."
     },
     {
       "id": "trabajito-la-paz-pasantias",
@@ -315,8 +266,10 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de pasantías en La Paz.",
-      "lista": true
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Misma plantilla que trabajito-la-paz. 5 ofertas, una sola página. Deduplicar por el código final de la URL."
     },
     {
       "id": "trabajito-la-paz-comercial-ventas",
@@ -326,8 +279,49 @@
       "habilitada": true,
       "oficial": false,
       "metodo": "automatico",
-      "nota": "Bolsa privada de empleo; listado de ofertas comerciales y ventas en La Paz.",
-      "lista": true
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Misma plantilla que trabajito-la-paz. 36 ofertas, 2 páginas (?page=2). Subconjunto de trabajito-la-paz: deduplicar por el código final de la URL."
+    },
+    {
+      "id": "toptrabajos-bolivia",
+      "nombre": "TopTrabajos: bolsa de empleo en Bolivia",
+      "url": "https://www.toptrabajos.com/bo/empleos",
+      "categoria": "empleo_publico",
+      "habilitada": true,
+      "oficial": false,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "parcial",
+      "nota": "Fuente nueva, confirmada solo por el buscador (no se pudo abrir la página): listado nacional con tarjetas (puesto, empresa, ciudad o 'Remoto', salario opcional, 'Publicado hace N semanas') y paginación ?pagina=N. Pocas ofertas (13-18 por categoría) y muchas remotas para empresas extranjeras. El primer ciclo debe confirmar; si falla, deshabilitar."
+    },
+    {
+      "id": "fuente-013",
+      "nombre": "Trabajando.com.bo: ofertas de empleo",
+      "url": "https://trabajando.com.bo/trabajo",
+      "categoria": "empleo_publico",
+      "habilitada": false,
+      "oficial": false,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "pendiente",
+      "nota": "Estaba mal ubicada en fuentes_noticias (es una bolsa de empleo, no un RSS) y no se pudo abrir en esta revisión. Un directorio de reclutamiento la cita como tablero nacional con filtro por ciudad. Habilitar si el primer ciclo confirma contenido extraíble."
+    },
+    {
+      "id": "ende-requerimientos-personal",
+      "nombre": "ENDE: requerimientos de personal vigentes",
+      "url": "https://www.ende.bo/requerimientos-de-personal/vigentes",
+      "categoria": "empleo_publico",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "pendiente",
+      "nota": "Enlace visto en el menú de ende.bo (Contrataciones > Requerimiento de Personal); no se abrió. Probablemente misma plantilla que fuente-12 (agregar ?btn_aceptar=1)."
     },
     {
       "id": "fuente-22",
@@ -337,197 +331,218 @@
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Página institucional de la EGPP con información sobre becas y convocatorias de cooperación."
+      "lista": false,
+      "formato": "pdf_embebido",
+      "verificado": "ok",
+      "nota": "La página es informativa. El listado real de becas vigentes es un PDF embebido en un visor pdf.js: buscar en el HTML el parámetro file= del viewer (ej. /wp-content/uploads/2026/11/Becas-06-de-noviembre.pdf, el nombre cambia con cada actualización) y extraer ese PDF. También hay cronogramas referenciales de pregrado y posgrado en PDF. Detectar cambios por el nombre del PDF."
     },
     {
       "id": "fuente-23",
-      "nombre": "Embajada de Japón: becas y cultura",
+      "nombre": "Embajada de Japón: becas Monbukagakusho y cultura",
       "url": "https://www.bo.emb-japan.go.jp/itpr_es/top-culture-es.html",
       "categoria": "becas",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "lista": true,
+      "formato": "html_links",
+      "verificado": "ok",
+      "nota": "Lista de enlaces. Extraer solo la sección 'Estudiar en Japón': los ítems que empiezan con 'Convocatoria:' (postgrado, pregrado, técnico superior, educadores, nikkeis) y su enlace. El resto de la página (eventos culturales) no es de interés. Sin fechas en el listado: abrir cada convocatoria. Cambia pocas veces al año."
     },
     {
       "id": "fuente-24",
       "nombre": "AGCID Chile: becas vigentes para extranjeros",
       "url": "https://www.agcid.gob.cl/becas/becas-para-extranjeros/ofertas-vigentes",
       "categoria": "becas",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "metodo": "navegador",
+      "lista": false,
+      "formato": "spa_js",
+      "verificado": "requiere_navegador",
+      "nota": "La página es un contenedor: el listado está en un iframe (https://appspublic.agci.cl/convocatorias/extranjeros.php) que respondió solo con CSS/JS y acordeones (.accordion-titulo / .accordion-content), sin ítems en el HTML estático. Requiere navegador. Las bases suelen publicarse en appspublic.agci.cl/becas/cursos/docs/."
     },
     {
-      "id": "fuente-27",
-      "nombre": "Embajada de EE.UU.: educación e intercambios",
-      "url": "https://bo.usembassy.gov/es/education-exchanges-es/",
-      "categoria": "becas",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://becas.planificacion.gob.bo/",
-      "id": "becas-planificacion",
-      "nombre": "Becas del Ministerio de Planificación",
-      "nota": "Portal institucional de becas.",
-      "oficial": true
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://dric.umss.edu.bo/becas-y-movilidad/",
       "id": "becas-umss",
-      "nombre": "UMSS: becas y movilidad",
-      "nota": "Becas y movilidad académica.",
-      "oficial": true
-    },
-    {
-      "categoria": "becas",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://lpz.ucb.edu.bo/becas/",
-      "id": "ucb-becas-lapaz",
-      "nombre": "Universidad Católica Boliviana: becas",
-      "nota": "Información institucional sobre becas estudiantiles y convocatorias por semestre.",
-      "oficial": true
-    },
-    {
-      "id": "becas-chevening",
-      "nombre": "Becas Chevening (Reino Unido) para Bolivia",
-      "url": "https://www.chevening.org/scholarship/bolivia/",
+      "nombre": "UMSS (DRIC): becas ofrecidas por gobiernos y organismos",
+      "url": "https://dric.umss.edu.bo/becas/",
       "categoria": "becas",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Se cambió la URL de /becas-y-movilidad/ (portada con 4 botones, sin listado) a /becas/. WordPress: cada ítem es un h2 con enlace a la beca (Italia MAECI, OEA, Türkiye, Holland Scholarship, Erasmus Mundus, etc.) más un extracto. No muestra fechas: la fecha de cierre está dentro del artículo. Debajo hay un índice por país (/alemania/, /chile/, /japon/, ...) con más convocatorias."
     },
     {
       "id": "becas-oea",
       "nombre": "OEA: programa de becas",
       "url": "https://www.oas.org/es/becas/",
       "categoria": "becas",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "lista": false,
+      "formato": "html_cards",
+      "verificado": "pendiente",
+      "nota": "El sitio bloqueó la lectura automatizada (detección de bots). Sin confirmar si el listado es extraíble. Alternativa mientras tanto: becas OEA vía UMSS (becas-umss)."
     },
     {
       "id": "becas-fundacion-carolina",
       "nombre": "Fundación Carolina: convocatorias de becas",
       "url": "https://www.fundacioncarolina.es/convocatorias/",
       "categoria": "becas",
-      "habilitada": true,
+      "habilitada": false,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública agregada sin verificar: el primer ciclo confirma si responde. Si no permite la consulta automatizada, se conserva como referencia."
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "pendiente",
+      "nota": "La lectura devolvió error del cliente; no se pudo confirmar. La fundación tiene abierta la 26ª convocatoria 2026-2027 (736 becas) según prensa. Reintentar en el primer ciclo."
     },
     {
-      "id": "fuente-16",
-      "nombre": "GAM La Paz: convocatorias",
-      "url": "https://lapaz.bo/convocatorias/",
-      "categoria": "convocatorias",
-      "habilitada": true,
+      "id": "dipgis-umsa",
+      "nombre": "UMSA DIPGIS: convocatorias de fondos concursables y becas",
+      "url": "https://dipgis.umsa.bo/",
+      "categoria": "becas",
+      "habilitada": false,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
+      "lista": true,
+      "formato": "html_links",
+      "verificado": "pendiente",
+      "nota": "Dominio hallado por el buscador: publica convocatorias en PDF (fondos concursables UMSA-Asdi 2026-2027, becas a cursos y diplomados) en /wp-content/uploads/AAAA/MM/. No se identificó la página índice; revisar y fijar la URL del listado antes de habilitar."
     },
     {
-      "id": "fuente-17",
-      "nombre": "SEDES La Paz: contrataciones",
-      "url": "https://www.sedegeslapaz.gob.bo/Contrataciones",
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "oficial": true,
-      "metodo": "automatico",
-      "nota": "Fuente pública. Si requiere acceso especial o no permite la consulta automatizada, se conserva como referencia."
-    },
-    {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://cancilleria.gob.bo/mre/convocatoria-publica/",
       "id": "cancilleria-convocatorias",
-      "nombre": "Ministerio de Relaciones Exteriores: convocatorias",
-      "nota": "Convocatorias públicas y procesos institucionales.",
-      "oficial": true
-    },
-    {
+      "nombre": "Ministerio de Relaciones Exteriores: convocatorias de personal",
+      "url": "https://cancilleria.gob.bo/mre/convocatoria-publica/",
       "categoria": "convocatorias",
       "habilitada": true,
+      "oficial": true,
       "metodo": "automatico",
-      "url": "https://www.minedu.gob.bo/index.php?Itemid=715&id=198&option=com_content&view=category",
+      "lista": true,
+      "formato": "html_tabla",
+      "verificado": "ok",
+      "nota": "Dos tablas: 'CONVOCATORIAS PÚBLICAS DE PERSONAL - VIGENTES' (12 filas) y 'NO VIGENTES'. Columnas: N° (10/2026), DESCRIPCIÓN (cargo y embajada), CONVOCATORIA (enlace PDF), HABILITADOS PRUEBA TÉCNICA, HABILITADOS ENTREVISTA, ESTADO ('EN PROCESO' / 'CONCLUIDO'). No hay fecha explícita: se deduce de la ruta del PDF (/uploads/2026/09/). Tomar solo la tabla de vigentes."
+    },
+    {
       "id": "minedu-convocatorias",
-      "nombre": "Ministerio de Educación: convocatorias",
-      "nota": "Convocatorias y publicaciones educativas.",
-      "oficial": true
-    },
-    {
+      "nombre": "Ministerio de Educación: convocatorias VESFP",
+      "url": "https://www.minedu.gob.bo/index.php?Itemid=715&id=198&option=com_content&view=category",
       "categoria": "convocatorias",
       "habilitada": true,
+      "oficial": true,
       "metodo": "automatico",
-      "url": "https://convocatorias.umsa.bo/web/guest",
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "ok",
+      "nota": "Joomla. Cada ítem: h2 con enlace al artículo, 'Publicado: 25 Octubre 2026' (mes en español) y resumen con PDFs en /files/documentos-normativos/VESFP/AAAA/. Pocos ítems y de baja frecuencia: el último (Convocatoria Pública 0001/2026, institucionalización de cargos) es del 08-oct-2026; los demás son de 2022-2023."
+    },
+    {
       "id": "umsa-convocatorias",
-      "nombre": "UMSA: convocatorias y becas",
-      "nota": "Portal institucional con convocatorias de pregrado, becas, docencia y posgrado.",
-      "oficial": true
+      "nombre": "UMSA: portal de convocatorias",
+      "url": "https://convocatorias.umsa.bo/web/guest",
+      "categoria": "convocatorias",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": false,
+      "formato": "html_links",
+      "verificado": "parcial",
+      "nota": "Liferay. La portada mezcla noticias, banners y eventos con fechas de 2023; no es un listado limpio de convocatorias. Los listados reales están en subpáginas: /web/guest/pregrado, /web/guest/pregrado-becas, /web/guest/docentes y /inicio (enlaces vistos, sin abrir). Habilitar apuntando a una de ellas una vez verificada."
     },
     {
-      "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://www.uagrm.edu.bo/index.php/noticias?category=anuncio",
       "id": "uagrm-anuncios",
       "nombre": "UAGRM: anuncios y convocatorias",
-      "nota": "Sección institucional de anuncios; publica concursos de méritos y convocatorias universitarias.",
-      "oficial": true
-    },
-    {
+      "url": "https://www.uagrm.edu.bo/index.php/noticias?category=anuncio",
       "categoria": "convocatorias",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://fiscalia.gob.bo/transparencia/convocatorias",
-      "id": "convocatorias-fiscalia",
-      "nombre": "Fiscalía General del Estado: convocatorias",
-      "nota": "Convocatorias y procesos públicos de la Fiscalía General del Estado.",
-      "oficial": true
-    },
-    {
-      "categoria": "fondos",
-      "habilitada": true,
-      "metodo": "automatico",
-      "url": "https://redunitas.org/fondos/fondo-de-pequenos-proyectos-unitas/",
-      "id": "fondos-unitas",
-      "nombre": "Red UNITAS: Fondo de Pequeños Proyectos",
-      "nota": "Financiamiento para organizaciones y proyectos.",
-      "oficial": true
-    },
-    {
-      "id": "gaceta-escala",
-      "nombre": "Gaceta Oficial: escalas",
-      "url": "http://www.gacetaoficialdebolivia.gob.bo/contenidos/escala",
-      "categoria": "normativa",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Contenido de escalas salariales/normativas publicado por la Gaceta Oficial."
+      "lista": true,
+      "formato": "html_cards",
+      "verificado": "ok",
+      "nota": "Tarjetas con categoría ('Anuncio'), título con enlace /noticias/<slug>_<hash>, extracto y fecha en texto ('16 de Octubre de 2026'). El filtro category=anuncio igualmente mezcla avisos institucionales: filtrar por palabras clave (convocatoria, concurso de méritos, oportunidad laboral, requerimiento). Debajo de 'Destacados' hay 3 ítems no filtrados por categoría: ignorarlos."
     },
     {
-      "id": "gaceta-especiales",
-      "nombre": "Gaceta Oficial: ediciones especiales",
+      "id": "fondos-unitas",
+      "nombre": "Red UNITAS: Fondo de Pequeños Proyectos",
+      "url": "https://redunitas.org/fondos/fondo-de-pequenos-proyectos-unitas/",
+      "categoria": "fondos",
+      "habilitada": true,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": false,
+      "formato": "html_links",
+      "verificado": "ok",
+      "nota": "Página única de un fondo, no un listado. La convocatoria vigente (fase dos 2026-2027, llamados 1 y 2) y sus guías son enlaces de descarga (.zip/.pdf) en /wp-content/uploads/2026/10/. Detectar cambios por el valor del meta article:modified_time (hoy 2026-10-05) o por la lista de enlaces de descarga."
+    },
+    {
+      "id": "fondos-unitas-fortalecimiento",
+      "nombre": "Red UNITAS: Fondo de Fortalecimiento de la Sociedad Civil",
+      "url": "https://redunitas.org/fondos/fondo-de-fortalecimiento-de-la-sociedad-civil/",
+      "categoria": "fondos",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": false,
+      "formato": "html_links",
+      "verificado": "pendiente",
+      "nota": "Enlace visto en el menú de redunitas.org; no se abrió. Presumiblemente misma estructura que fondos-unitas (página única con descargas)."
+    },
+    {
+      "id": "gaceta-propiedad-intelectual",
+      "nombre": "Gaceta Oficial: boletines de propiedad intelectual",
       "url": "http://www.gacetaoficialdebolivia.gob.bo/edicions/buscarEspeciales/11",
       "categoria": "normativa",
       "habilitada": true,
       "oficial": true,
       "metodo": "automatico",
-      "nota": "Listado de ediciones especiales de la Gaceta Oficial."
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "ok",
+      "nota": "Reemplaza a gaceta-especiales: esta URL (/11) lista ediciones de Propiedad Intelectual, no ediciones especiales. 196 ediciones, 50 por página: /page:N. Cada bloque: 'Edición: 70PI', tipo, fecha de publicación (dd-mm-aaaa) y descripción del mes. Útil solo para propiedad intelectual; para normativa general usar gaceta-leyes y gaceta-decretos."
+    },
+    {
+      "id": "gaceta-ediciones-gacetas",
+      "nombre": "Gaceta Oficial: ediciones de gacetas",
+      "url": "http://www.gacetaoficialdebolivia.gob.bo/edicions/buscarEspeciales/13",
+      "categoria": "normativa",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "pendiente",
+      "nota": "Enlace visto en el menú de la Gaceta ('Ediciones de Gacetas'); misma plantilla verificada que /11. No se abrió. Habilitar tras confirmar."
+    },
+    {
+      "id": "gaceta-leyes",
+      "nombre": "Gaceta Oficial: últimas leyes",
+      "url": "http://www.gacetaoficialdebolivia.gob.bo/normas/listadonor/10",
+      "categoria": "normativa",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "pendiente",
+      "nota": "Enlace 'Últimas Leyes' del pie de la Gaceta. No se pudo abrir en esta revisión (tope de lecturas). Es la fuente natural para normativa; confirmar estructura antes de habilitar."
+    },
+    {
+      "id": "gaceta-decretos",
+      "nombre": "Gaceta Oficial: últimos decretos",
+      "url": "http://www.gacetaoficialdebolivia.gob.bo/normas/listadonor/11",
+      "categoria": "normativa",
+      "habilitada": false,
+      "oficial": true,
+      "metodo": "automatico",
+      "lista": true,
+      "formato": "html_bloques",
+      "verificado": "pendiente",
+      "nota": "Enlace 'Últimos Decretos' del pie de la Gaceta. No se pudo abrir en esta revisión. Confirmar estructura antes de habilitar."
     }
   ],
   "fuentes_noticias": [
@@ -536,70 +551,112 @@
       "nombre": "Los Tiempos · últimas noticias",
       "url": "https://www.lostiempos.com/servicios/rss",
       "feed_url": "https://www.lostiempos.com/rss/ultimas",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "ok",
+      "formato": "rss",
+      "nota": "RSS 2.0 válido, 20 ítems del 15-nov-2026. <channel><title> y <description> vienen vacíos. Cada <item>: title, link, description (HTML escapado, solo el extracto), pubDate (RFC 822, UTC), dc:creator, guid. Al menos un enlace trae un carácter de control (%02) al inicio del slug: limpiar la URL antes de guardarla."
     },
     {
       "id": "noticias-abi",
       "nombre": "Agencia Boliviana de Información · RSS",
       "url": "https://abi.bo/rss-abi/",
       "feed_url": "https://abi.bo/rss-abi/",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No se pudo abrir en esta revisión (tope de lecturas). El primer ciclo debe confirmar HTTP 200 y XML válido; si falla, deshabilitar."
     },
     {
       "id": "noticias-opinion",
       "nombre": "Opinión Bolivia · RSS",
       "url": "https://www.opinion.com.bo/rss/listado/",
       "feed_url": "https://www.opinion.com.bo/rss/listado/",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado. La ruta /rss/listado/ puede ser un índice de feeds y no un feed: si el XML no trae <item>, tomar el feed de la sección que corresponda."
     },
     {
       "id": "noticias-erbol",
       "nombre": "ERBOL · noticias",
       "url": "https://erbol.com.bo/",
       "feed_url": "https://anteriorportal.erbol.com.bo/digital/rss/portada/feed",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado. El feed apunta a 'anteriorportal' (portal anterior): riesgo de contenido congelado. Confirmar que la fecha del ítem más reciente sea actual; si no, reemplazar por el feed del portal nuevo."
     },
     {
       "id": "noticias-eldeber",
       "nombre": "El Deber · portada",
       "url": "https://eldeber.com.bo/",
       "feed_url": "https://eldeber.com.bo/rss/",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado. Si /rss/ es un índice de feeds, elegir el de portada."
     },
     {
       "id": "noticias-correodelsur",
       "nombre": "Correo del Sur · portada",
       "url": "https://correodelsur.com/",
       "feed_url": "https://correodelsur.com/rss/",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado. Si /rss/ es un índice de feeds, elegir el de portada."
     },
     {
       "id": "noticias-brujula",
       "nombre": "Brújula Digital · portada",
       "url": "https://www.brujuladigital.net/",
       "feed_url": "https://www.brujuladigital.net/feed",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado. /feed es la ruta estándar de WordPress; debería ser RSS 2.0 con content:encoded."
     },
     {
       "id": "noticias-unitel",
       "nombre": "Unitel · portada",
       "url": "https://unitel.bo/",
       "feed_url": "https://unitel.bo/rss",
-      "habilitada": true
-    },
-    {
-      "id": "fuente-013",
-      "nombre": "work",
-      "url": "https://trabajando.com.bo/trabajo",
-      "feed_url": "https://trabajando.com.bo/trabajo",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado."
     },
     {
       "id": "noticias-reduno",
       "nombre": "Red Uno · portada",
       "url": "https://www.reduno.com.bo/",
       "feed_url": "https://www.reduno.com.bo/rss",
-      "habilitada": true
+      "habilitada": true,
+      "verificado": "pendiente",
+      "formato": "rss",
+      "nota": "No verificado."
     }
+  ],
+  "descartadas": [
+    { "id": "fuente-08", "nombre": "BCB: licitaciones (licitacion-publica)", "url": "https://www.bcb.gob.bo/?q=licitacion-publica", "motivo": "Duplicado de fuente-07: devuelve exactamente el mismo listado (con pestañas Vigentes/Pasadas)." },
+    { "id": "fuente-25", "nombre": "BCB: licitaciones (webdocs)", "url": "https://www.bcb.gob.bo/webdocs/licitacionesbcb/", "motivo": "Error del cliente al abrirla: es un directorio de archivos, no una página de listado." },
+    { "id": "fuente-13", "nombre": "ENTEL: licitaciones por fecha de publicación", "url": "https://institucional.entel.bo/inicio3.0/index.php/por-fecha-de-publicacion", "motivo": "robots.txt prohíbe el acceso automatizado y es redundante con fuente-14 (misma plantilla Joomla)." },
+    { "id": "latamcompra-bolivia", "nombre": "LatamCompra: licitaciones de Bolivia", "url": "https://www.latamcompra.com/region/bolivia", "motivo": "Abierta: muestra 'There are currently no tenders to show'. Solo exhibe ejemplos vencidos y exige registro para ver procesos." },
+    { "id": "sicoeshoy-la-paz", "nombre": "SICOES Hoy: licitaciones en La Paz", "url": "https://sicoeshoy.bo/licitaciones/la-paz", "motivo": "La muestra pública rotativa traía procesos de septiembre ya vencidos y es redundante con SICOES Monitor La Paz (fuente-01)." },
+    { "id": "fuente-18", "nombre": "Licitaciones.com.bo: convocatorias nacionales", "url": "https://www.licitaciones.com.bo/convocatorias-nacionales-57.html", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable." },
+    { "id": "sicoes-rupe-guia", "nombre": "SICOES: guía de proveedores (RUPE)", "url": "https://sicoes.gob.bo/portal/rupe/guiaProveedores.php?token=82714327565b99df7b2d91aefb302ad7a51c280bd8068f717528894d236d1fbe", "motivo": "Guía de registro, no es un listado de convocatorias." },
+    { "id": "vacaguzman-licitaciones-blog", "nombre": "Vaca Guzmán Abogados: licitaciones públicas en Bolivia", "url": "https://www.vacaguzmansilesabogados.com/2023/04/13/licitaciones-publicas-bolivia/", "motivo": "Artículo informativo de 2023, sin listado." },
+    { "id": "tradextremadura-licitar-bolivia", "nombre": "Trade Extremadura: cómo licitar en Bolivia", "url": "https://www.tradextremadura.com/licitaciones/licitar-en-bolivia/", "motivo": "Guía informativa, sin listado." },
+    { "id": "empleo-boA", "nombre": "Boliviana de Aviación: oportunidades de empleo", "url": "https://www.boa.gob.bo/oportunidad-de-empleo/", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable." },
+    { "id": "fuente-015", "nombre": "Trabajopolis: ofertas de los últimos 7 días", "url": "https://www.trabajopolis.bo/recientes/7-dias", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable. Reconsiderar si el sitio ofrece feed o API." },
+    { "id": "fuente-27", "nombre": "Embajada de EE.UU.: educación e intercambios", "url": "https://bo.usembassy.gov/es/education-exchanges-es/", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable." },
+    { "id": "becas-planificacion", "nombre": "Becas del Ministerio de Planificación", "url": "https://becas.planificacion.gob.bo/", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable." },
+    { "id": "ucb-becas-lapaz", "nombre": "Universidad Católica Boliviana: becas", "url": "https://lpz.ucb.edu.bo/becas/", "motivo": "Abierta: página informativa de tipos de beca con una sola convocatoria semestral (1-2027, cerrada el 30-oct-2026). Sin listado; abre en mayo y octubre." },
+    { "id": "becas-chevening", "nombre": "Becas Chevening (Reino Unido) para Bolivia", "url": "https://www.chevening.org/scholarship/bolivia/", "motivo": "Abierta: página de una sola beca, 'Closed for applications' (ciclo 2027-2028). Sin listado." },
+    { "id": "fuente-16", "nombre": "GAM La Paz: convocatorias", "url": "https://lapaz.bo/convocatorias/", "motivo": "Abierta: solo 2 ítems, de 2022 y 2025. Sin actividad." },
+    { "id": "fuente-17", "nombre": "SEDES La Paz: contrataciones", "url": "https://www.sedegeslapaz.gob.bo/Contrataciones", "motivo": "Abierta: solo un PDF del Programa Anual de Contrataciones; no hay listado de convocatorias." },
+    { "id": "convocatorias-fiscalia", "nombre": "Fiscalía General del Estado: convocatorias", "url": "https://fiscalia.gob.bo/transparencia/convocatorias", "motivo": "robots.txt prohíbe el acceso automatizado; no verificable." },
+    { "id": "gaceta-escala", "nombre": "Gaceta Oficial: escalas", "url": "http://www.gacetaoficialdebolivia.gob.bo/contenidos/escala", "motivo": "Abierta: es la escala salarial del propio personal de la Gaceta (14 ítems), no normativa publicada." },
+    { "id": "gaceta-especiales", "nombre": "Gaceta Oficial: ediciones especiales", "url": "http://www.gacetaoficialdebolivia.gob.bo/edicions/buscarEspeciales/11", "motivo": "Reemplazada por gaceta-propiedad-intelectual: la URL /11 lista boletines de Propiedad Intelectual, no ediciones especiales (esas son /10)." }
   ]
 }
